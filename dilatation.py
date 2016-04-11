@@ -72,9 +72,13 @@ cv2.imwrite("extract_vertical.png", vertical)
 # url: http://docs.opencv.org/3.1.0/d4/d73/tutorial_py_contours_begin.html#gsc.tab=0
 # im2, contours, hierarchy =
 # contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+# contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+im2, contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  # version 3.1.0
 # url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
 print hierarchy
+cv2.imshow("image from findContour", im2)
+cv2.waitKey(0)
+cv2.imwrite("extract_contours_image.png", im2)
 
 img_contours = src.copy()
 

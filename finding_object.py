@@ -4,11 +4,16 @@ from matplotlib import pyplot as plt
 
 MIN_MATCH_COUNT = 10
 
-img1 = cv2.imread('box.png', 0)          # queryImage
-img2 = cv2.imread('box_in_scene.png', 0)  # trainImage
+# img1 = cv2.imread('box.png', 0)          # queryImage
+# img2 = cv2.imread('box_in_scene.png', 0)  # trainImage
+#
+img1 = cv2.imread('sharp.png', 0)          # queryImage
+img2 = cv2.imread('Page_09_Pattern_23.png', 0)  # trainImage
+# img2 = cv2.imread('Page_09_Pattern_23_without_a_sharp.png', 0)  # trainImage
 
 # Initiate SIFT detector
-sift = cv2.SIFT()
+# sift = cv2.SIFT()
+sift = cv2.xfeatures2d.SIFT_create()
 
 # find the keypoints and descriptors with SIFT
 kp1, des1 = sift.detectAndCompute(img1, None)
@@ -21,6 +26,8 @@ search_params = dict(checks=50)
 flann = cv2.FlannBasedMatcher(index_params, search_params)
 
 matches = flann.knnMatch(des1, des2, k=2)
+
+print "matches: ", matches
 
 # store all the good matches as per Lowe's ratio test.
 good = []

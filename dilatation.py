@@ -12,6 +12,7 @@ bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BI
 
 cv2.imshow("bw", bw)
 cv2.waitKey(0)
+cv2.imwrite("bw.png", bw)
 
 # url: http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
 # kernel = np.ones((2,2),np.uint8)
@@ -21,6 +22,7 @@ bw = cv2.dilate(bw, kernel, iterations=1)
 
 cv2.imshow("bw", bw)
 cv2.waitKey(0)
+cv2.imwrite("bw_after_dilate.png", bw)
 
 # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
 horizontal = bw.copy()
@@ -42,6 +44,7 @@ horizontal = cv2.dilate(horizontal, horizontalStructure)
 
 cv2.imshow("horizontal", horizontal)
 cv2.waitKey(0)
+cv2.imwrite("extract_horizontal.png", horizontal)
 
 # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
 vertical = bw.copy()
@@ -63,6 +66,7 @@ vertical = cv2.dilate(vertical, verticalStructure)
 
 cv2.imshow("vertical", vertical)
 cv2.waitKey(0)
+cv2.imwrite("extract_vertical.png", vertical)
 
 # url: http://docs.opencv.org/3.1.0/d4/d73/tutorial_py_contours_begin.html#gsc.tab=0
 # im2, contours, hierarchy =
@@ -77,6 +81,7 @@ cv2.drawContours(img_contours, contours, -1, (255, 0, 0), 1)
 
 cv2.imshow("img_contours", img_contours)
 cv2.waitKey(0)
+cv2.imwrite("extract_contours.png", img_contours)
 
 
 # url: https://github.com/spmallick/learnopencv/blob/master/BlobDetector/blob.py
@@ -131,3 +136,4 @@ im_with_keypoints = cv2.drawKeypoints(
 # Show blobs
 cv2.imshow("Keypoints", im_with_keypoints)
 cv2.waitKey(0)
+cv2.imwrite("extract_circles_notes.png", im_with_keypoints)

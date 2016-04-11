@@ -12,6 +12,7 @@ bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BI
 
 cv2.imshow("bw", bw)
 cv2.waitKey(0)
+# url: http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html
 cv2.imwrite("bw.png", bw)
 
 # url: http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html

@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 
-filename = "Page_09_Pattern_23.png"
+# filename = "Page_09_Pattern_23.png"
 # filename = "Page_09.jpg"
+filename = "Page_09_HD.jpg"
 
 src = cv2.imread(filename)
 

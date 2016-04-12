@@ -1,15 +1,23 @@
 import cv2
 import numpy as np
 
-# filename = "Page_09_Pattern_23.png"
+#
+# filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
-filename = "Page_09_HD.jpg"
+#
+# filename = "Page_09_Pattern_23.png"
+filename = "Page_09_Pattern_26.png"
 
 src = cv2.imread(filename)
 
 gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 
-bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+edges = cv2.Canny(gray, 150, 700, apertureSize=5)
+cv2.imshow("edges", edges)
+cv2.waitKey(0)
+
+# bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
 
 cv2.imshow("bw", bw)
 cv2.waitKey(0)
@@ -17,10 +25,10 @@ cv2.waitKey(0)
 cv2.imwrite("bw.png", bw)
 
 # url: http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+# cv2.dilate(bw, cv2.ones(2, 2, CV_8UC1))
 # kernel = np.ones((2,2),np.uint8)
 kernel = np.ones((2, 2), np.uint8)
 bw = cv2.dilate(bw, kernel, iterations=1)
-# cv2.dilate(bw, cv2.ones(2, 2, CV_8UC1))
 
 cv2.imshow("bw", bw)
 cv2.waitKey(0)
@@ -74,12 +82,20 @@ cv2.imwrite("extract_vertical.png", vertical)
 # im2, contours, hierarchy =
 # contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 # contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-im2, contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  # version 3.1.0
+# im2, contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  # version 3.1.0
+tup_results = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  # 
+global contours, hierarchy
+if len(tup_results) == 3:
+    im2, contours, hierarchy = tup_results
+    cv2.imshow("image from findContour", im2)
+    cv2.waitKey(0)
+    cv2.imwrite("extract_contours_image.png", im2)
+else:
+    contours, hierarchy = tup_results
+
 # url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
 print hierarchy
-cv2.imshow("image from findContour", im2)
-cv2.waitKey(0)
-cv2.imwrite("extract_contours_image.png", im2)
+
 
 img_contours = src.copy()
 

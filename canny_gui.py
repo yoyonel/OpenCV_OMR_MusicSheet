@@ -43,6 +43,7 @@ height, width = im.shape[:2]
 # url: http://docs.opencv.org/2.4/modules/highgui/doc/user_interface.html
 # Create a black image, a window
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+# cv2.resizeWindow('image', 320, 200)
 
 # create trackbars for color change
 cv2.createTrackbar('canny_lowThreshold', 'image', canny_lowThreshold, max_lowThreshold, nothing)

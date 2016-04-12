@@ -23,6 +23,12 @@ minThreshold = 0  #
 maxThreshold = 255
 ret, thresh = cv2.threshold(imgray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 print 'ret: ', ret
+
+cv2.namedWindow('Thresholding Otsu', cv2.WINDOW_OPENGL)
 cv2.imshow('thresh', thresh)
 cv2.imwrite("thresh_otsu_{0}.jpg".format(filename[:-4]), thresh)
-cv2.waitKey(0)
+
+while(1):
+    k = cv2.waitKey(1) & 0xFF
+    if k == 27:
+        break

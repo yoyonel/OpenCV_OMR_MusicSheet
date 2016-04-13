@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import math
 
 img = cv2.imread('Page_09_Pattern_23.png')
 cv2.imshow("img", img)
@@ -31,30 +32,18 @@ img_out = edges
 img_in = img_out
 img_out = img
 
-minLineLength = 300
-# lines = cv2.HoughLines(img_in,1,np.pi/180,200)
-lines = cv2.HoughLines(img_in, 1, np.pi / 180, minLineLength)
-height, width = img_in.shape[:2]
-for rho, theta in lines[0]:
-    a = np.cos(theta)
-    b = np.sin(theta)
-    x0 = a * rho
-    y0 = b * rho
-    x1 = int(x0 + width * (-b))
-    y1 = int(y0 + height * (a))
-    x2 = int(x0 - width * (-b))
-    y2 = int(y0 - height * (a))
-    #
-    cv2.line(img_out, (x1, y1), (x2, y2), (0, 0, 255), 1)
+minLineLength = 0
+# lines = cv2.HoughLines(img_in, 1, np.pi / 180, minLineLength)
+lines = cv2.HoughLinesP(img_in, rho=1,
+                        theta=math.pi / 180, threshold=70,
+                        minLineLength=50, maxLineGap=25
+                        )
+# url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
+# print lines
+for line in lines:
+    # print line
+    x1, y1, x2, y2 = line[0]
+    cv2.line(img_out, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
 cv2.imshow("houghlines3", img_out)
-cv2.waitKey(0)
-
-minLineLength = 200
-maxLineGap = 10
-lines = cv2.HoughLinesP(img_in, 1, np.pi / 180, 100, minLineLength, maxLineGap)
-for x1, y1, x2, y2 in lines[0]:
-    cv2.line(edges, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-cv2.imshow("HoughLinesP", edges)
 cv2.waitKey(0)

@@ -186,7 +186,9 @@ for line in lines:
 
 # print "angles: ", angles
 
-# url: http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html#numpy.histogram
+# url: 
+# - http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html#numpy.histogram
+# - http://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html#gsc.tab=0
 # hist, bin_edges = np.histogram(angles, density=False, normed=False, weights=weights)
 hist, bin_edges = np.histogram(angles, 1000, density=True)  # un peu bourrrin l'histogramme :p
 hist *= np.diff(bin_edges)

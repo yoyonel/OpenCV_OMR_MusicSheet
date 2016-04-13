@@ -14,12 +14,15 @@ import math
 # filename = "Page_09_Pattern_23_rot90.png"
 filename = "rotate_image.png"
 
+# cv2.namedWindow("window", cv2.WINDOW_NORMAL | cv2.WINDOW_OPENGL)
+cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+
 src = cv2.imread(filename)
 
 gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 
 edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-cv2.imshow("edges", edges)
+cv2.imshow("window", edges)
 cv2.waitKey(0)
 # bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
 bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
@@ -33,7 +36,7 @@ maxThreshold = 250
 kernel = np.ones((2, 2), np.uint8)
 bw = cv2.dilate(bw, kernel, iterations=1)
 
-cv2.imshow("bw", bw)
+cv2.imshow("window", bw)
 cv2.waitKey(0)
 cv2.imwrite("bw_after_dilate.png", bw)
 
@@ -55,7 +58,7 @@ print horizontalStructure
 horizontal = cv2.erode(horizontal, horizontalStructure)
 horizontal = cv2.dilate(horizontal, horizontalStructure)
 
-cv2.imshow("horizontal", horizontal)
+cv2.imshow("window", horizontal)
 cv2.waitKey(0)
 cv2.imwrite("extract_horizontal.png", horizontal)
 
@@ -77,7 +80,7 @@ print verticalStructure
 vertical = cv2.erode(vertical, verticalStructure)
 vertical = cv2.dilate(vertical, verticalStructure)
 
-cv2.imshow("vertical", vertical)
+cv2.imshow("window", vertical)
 cv2.waitKey(0)
 cv2.imwrite("extract_vertical.png", vertical)
 
@@ -91,7 +94,7 @@ tup_results = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_TC89
 global contours, hierarchy
 if len(tup_results) == 3:
     im2, contours, hierarchy = tup_results
-    cv2.imshow("image from findContour", im2)
+    cv2.imshow("window", im2)
     cv2.waitKey(0)
     cv2.imwrite("extract_contours_image.png", im2)
 else:
@@ -134,12 +137,12 @@ for i, contour in enumerate(contours):
 
         # # Finally draw the line
         # cv2.line(img_contours, (width-1, righty), (0, lefty), (255, 0, 0), 1)
-cv2.imshow("img_contours", img_contours)
+cv2.imshow("window", img_contours)
 cv2.waitKey(0)
 
 minLineLength = 0
 img_contours_2 = cv2.Canny(img_contours_2, 150, 700, apertureSize=5)
-cv2.imshow("cv2.Canny", img_contours_2)
+cv2.imshow("window", img_contours_2)
 cv2.waitKey(0)
 
 lines = cv2.HoughLinesP(img_contours_2, rho=1,
@@ -150,7 +153,7 @@ for line in lines:
     # print line
     x1, y1, x2, y2 = line[0]
     cv2.line(img_contours_2, (x1, y1), (x2, y2), (0, 255, 0), 2)
-cv2.imshow("img_contours_2", img_contours_2)
+cv2.imshow("window", img_contours_2)
 cv2.waitKey(0)
 
 cv2.imwrite("extract_contours.png", img_contours)

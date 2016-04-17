@@ -261,23 +261,30 @@ for i, contour in enumerate(contours):
         cv2.drawContours(img_contours_2, contours, i, color_rand, thickness)
         cv2.fillPoly(img_contours_2, pts=contours, color=(255, 255, 255))
 
-        contour_flat = [item for sublist in contour for item in sublist]
+        # contour_flat = [item for sublist in contour for item in sublist]
         # for point in contour_flat:
         #     cv2.circle(img_contours, tuple(point), 5, 255 - color_rand)
         # contour_gradients = np.gradient(contour_flat)
         # print "gradient: ", np.gradient(contour_gradients)
 
+minPerimeter = 2000
+thickness = 1
+for i, contour in enumerate(contours):
+    perimeter = cv2.arcLength(contour, True)
+    # print "contours - perimeter= ", perimeter
+    if perimeter >= minPerimeter:
         # url: https://github.com/Itseez/opencv/blob/master/samples/python/fitline.py
         # url: http://stackoverflow.com/questions/14184147/detect-lines-opencv-in-object
         # then apply fitline() function
-        # [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
+        [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
         # [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_HUBER, 0, 0.01, 0.01)
         # Now find two extreme points on the line to draw line
-        # lefty = int((-x*vy/vx) + y)
-        # righty = int(((width-x)*vy/vx)+y)
+        lefty = int((-x*vy/vx) + y)
+        righty = int(((width-x)*vy/vx)+y)
 
         # Finally draw the line
-        # cv2.line(img_contours, (width-1, righty), (0, lefty), (255, 0, 0), 1)
+        cv2.line(img_contours, (width-1, righty), (0, lefty), (255, 0, 0), 1)
+
 # cv2.imshow("window", img_contours)
 # cv2.waitKey(0)
 

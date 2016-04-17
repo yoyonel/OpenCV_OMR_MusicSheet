@@ -14,8 +14,8 @@ import sys
 # filename = "Page_09_Pattern_26.png"
 #
 # filename = "Page_09_Pattern_23_rot90.png"
-filename = "Page_09_Pattern_24_rot.png"
-# filename = "Page_09_Pattern_26_rot_crop.png"
+# filename = "Page_09_Pattern_24_rot.png"
+filename = "Page_09_Pattern_26_rot_crop.png"
 #
 # filename = "rotate_image.png"
 
@@ -106,7 +106,7 @@ def rotate_image(image, angle):
     w = right - left
 
     cropped = np.zeros((w, h, 3), dtype='uint8')
-    cropped[:,:,:] = dst_image[left:(left+w), up:(up+h),:]
+    cropped[:, :, :] = dst_image[left:(left + w), up:(up + h), :]
     return cropped
 
 
@@ -130,17 +130,19 @@ def rotate_image_2(mat, angle):
 
 
 if __name__ == '__main__':
+    cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+
     src = cv2.imread(filename)
     src2 = src.copy()
 
     gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-    # 
+    #
     # minThreshold = 0  #
     # maxThreshold = 255
     # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
     edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-    cv2.imshow("edges", edges)
+    cv2.imshow("window", edges)
     cv2.waitKey(0)
     bw = cv2.adaptiveThreshold(~edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
     # bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
@@ -188,7 +190,7 @@ if __name__ == '__main__':
 
     # print "angles: ", angles
 
-    # url: 
+    # url:
     # - http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html#numpy.histogram
     # - http://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html#gsc.tab=0
     # hist, bin_edges = np.histogram(angles, density=False, normed=False, weights=weights)
@@ -207,7 +209,7 @@ if __name__ == '__main__':
     print "index of max in hist: ", index_of_max
     print "angle for max: ", angle_for_max
 
-    cv2.imshow("houghlines3", src)
+    cv2.imshow("window", src)
     cv2.imwrite("houghlines3.png", src)
     cv2.waitKey(0)
 
@@ -216,6 +218,6 @@ if __name__ == '__main__':
     dst = rotate_image_2(src2, (360 - angle_for_max))
     # dst = rotate_image_2(src2, angle_for_max)
 
-    cv2.imshow("rotate image", dst)
+    cv2.imshow("window", dst)
     cv2.imwrite("rotate_image.png", dst)
     cv2.waitKey(0)

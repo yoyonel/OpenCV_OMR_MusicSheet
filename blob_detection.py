@@ -4,20 +4,23 @@ import numpy as np
 
 # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_gui/py_trackbar/py_trackbar.html
 def nothing(x):
-    pass
+    global update_window
+    update_window = True
 
 #
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
 #
-# filename = "Page_09_Pattern_23.png"
-filename = "Page_09_Pattern_26.png"
+filename = "Page_09_Pattern_23.png"
+# filename = "Page_09_Pattern_26.png"
 
 # url: https://github.com/spmallick/learnopencv/blob/master/BlobDetector/blob.py
 # Read image
 # im = cv2.imread("BlobTest.jpg", cv2.IMREAD_GRAYSCALE)
 # im = cv2.imread("Page_09_Pattern_23.png", cv2.IMREAD_GRAYSCALE)
 im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+
+im = cv2.medianBlur(im, 5)
 
 # Setup SimpleBlobDetector parameters.
 params = cv2.SimpleBlobDetector_Params()
@@ -65,42 +68,47 @@ cv2.createTrackbar(switch_filterByInertia, 'image', params.filterByInertia, 1, n
 
 # cv2.imwrite("extract_circles_notes.png", im_with_keypoints)
 
+update_window = True
+
 while(1):
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
         break
 
-    # get current positions of four trackbars
-    canny_lowThreshold = cv2.getTrackbarPos('canny_lowThreshold', 'image')
-    # canny_param2 = cv2.getTrackbarPos('canny_param2', 'image')
-    # canny_apertureSize = cv2.getTrackbarPos('canny_apertureSize', 'image')
+    if update_window:
+        # get current positions of four trackbars
+        canny_lowThreshold = cv2.getTrackbarPos('canny_lowThreshold', 'image')
+        # canny_param2 = cv2.getTrackbarPos('canny_param2', 'image')
+        # canny_apertureSize = cv2.getTrackbarPos('canny_apertureSize', 'image')
 
-    params.filterByArea = bool(cv2.getTrackbarPos(switch_filterByArea, 'image'))
-    params.filterByCircularity = bool(cv2.getTrackbarPos(switch_filterByCircularity, 'image'))
-    params.filterByConvexity = bool(cv2.getTrackbarPos(switch_filterByConvexity, 'image'))
-    params.filterByInertia = bool(cv2.getTrackbarPos(switch_filterByInertia, 'image'))
+        params.filterByArea = bool(cv2.getTrackbarPos(switch_filterByArea, 'image'))
+        params.filterByCircularity = bool(cv2.getTrackbarPos(switch_filterByCircularity, 'image'))
+        params.filterByConvexity = bool(cv2.getTrackbarPos(switch_filterByConvexity, 'image'))
+        params.filterByInertia = bool(cv2.getTrackbarPos(switch_filterByInertia, 'image'))
 
-    params.minArea = cv2.getTrackbarPos('minArea', 'image')
-    params.maxArea = cv2.getTrackbarPos('maxArea', 'image')
-    params.minCircularity = cv2.getTrackbarPos('minCircularity', 'image')/1000.0
+        params.minArea = cv2.getTrackbarPos('minArea', 'image')
+        params.maxArea = cv2.getTrackbarPos('maxArea', 'image')
+        params.minCircularity = cv2.getTrackbarPos('minCircularity', 'image')/1000.0
 
-    # Create a detector with the parameters
-    ver = (cv2.__version__).split('.')
+        # Create a detector with the parameters
+        ver = (cv2.__version__).split('.')
 
-    if int(ver[0]) < 3:
-        detector = cv2.SimpleBlobDetector(params)
-    else:
-        detector = cv2.SimpleBlobDetector_create(params)
+        if int(ver[0]) < 3:
+            detector = cv2.SimpleBlobDetector(params)
+        else:
+            detector = cv2.SimpleBlobDetector_create(params)
 
-    # Detect blobs.
-    keypoints = detector.detect(im)
+        # Detect blobs.
+        keypoints = detector.detect(im)
 
-    # Draw detected blobs as red circles.
-    # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
-    # the size of the circle corresponds to the size of blob
+        # Draw detected blobs as red circles.
+        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
+        # the size of the circle corresponds to the size of blob
 
-    im_with_keypoints = cv2.drawKeypoints(
-        im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        im_with_keypoints = cv2.drawKeypoints(
+            im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-    # Show blobs
-    cv2.imshow("image", im_with_keypoints)
+        # Show blobs
+        cv2.imshow("image", im_with_keypoints)
+
+        update_window = False

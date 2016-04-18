@@ -3,16 +3,93 @@ import numpy as np
 
 
 # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_gui/py_trackbar/py_trackbar.html
-def nothing(x):
+def onChange(x):
     global update_window
     update_window = True
+
+
+def createTrackBar(params, nameWindow, callback, dict_range_params={}):
+    list_attr = set([attr for attr in dir(params) if not callable(attr) and not attr.startswith("__")])
+    # filters
+    list_filters = set([attr for attr in list_attr if 'filterBy' in attr])
+    # min/max parameters
+    list_min_params = set([attr[3:] for attr in list_attr if 'min' in attr])
+    list_max_params = set([attr[3:] for attr in list_attr if 'max' in attr])
+    # minmax parameters
+    list_minmax_params = list_min_params.intersection(list_max_params)
+    # min (only) parameters
+    list_min_only_params = list_min_params.difference(list_max_params)
+    
+    for filter in list_filters:
+        cv2.createTrackbar(filter, nameWindow, getattr(params, filter), 1, callback)
+       
+    for minmax_param in list_minmax_params:
+        trackbarname_param_min = 'min' + minmax_param
+        trackbarname_param_max = 'max' + minmax_param
+        
+        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, (0.0, (0, 1), 1000))
+        # REMAP
+        current_value *= param_remap
+        param_min *= param_remap
+        param_max *= param_remap
+
+        cv2.createTrackbar(
+            ('%' if param_remap!=1 else '') + trackbarname_param_min, 
+            nameWindow, int(current_value), int(param_max), onChange)
+
+        cv2.createTrackbar(
+            ('%' if param_remap!=1 else '') + trackbarname_param_max, 
+            nameWindow, int(param_max), int(param_max), onChange)
+    #
+    # for min_param in list_min_only_params:
+    #     trackbarname_param_min = 'min' + min_param
+    #     current_value, (param_min, param_max), param_remap = dict_range_params.get(min_param, (0.0, (0, 1), 1000))
+    #     # REMAP
+    #     current_value *= param_remap
+    #     param_min *= param_remap
+    #     #
+    #     trackbarsname_param = ('%' if param_remap!=1 else '') + trackbarname_param_min
+    #     print "-> trackbarsname_param: ", trackbarsname_param, "-> ", int(current_value)
+    #     cv2.createTrackbar(trackbarsname_param, nameWindow,  int(current_value), param_max, onChange)
+
+def updateParams(params, nameWindow, dict_range_params={}):
+    list_attr = set([attr for attr in dir(params) if not callable(attr) and not attr.startswith("__")])
+    # filters
+    list_filters = set([attr for attr in list_attr if 'filterBy' in attr])
+    # min/max parameters
+    list_min_params = set([attr[3:] for attr in list_attr if 'min' in attr])
+    list_max_params = set([attr[3:] for attr in list_attr if 'max' in attr])
+    # minmax parameters
+    list_minmax_params = list_min_params.intersection(list_max_params)
+    # min (only) parameters
+    list_min_only_params = list_min_params.difference(list_max_params)
+    
+    for filter in list_filters:
+        print filter, bool(cv2.getTrackbarPos(filter, nameWindow))
+        setattr(params, filter, bool(cv2.getTrackbarPos(filter, nameWindow)))
+       
+    for minmax_param in list_minmax_params:        
+        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, (0.5, (0, 1), 1000))
+        min_param = 'min' + minmax_param
+        max_param = 'max' + minmax_param
+        trackbarname_param_min = ('%' if param_remap!=1 else '') + min_param
+        trackbarname_param_max = ('%' if param_remap!=1 else '') + max_param
+        # print trackbarname_param_min, cv2.getTrackbarPos(trackbarname_param_min, nameWindow)
+        setattr(params, min_param, float(cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(param_remap))
+        setattr(params, max_param, float(cv2.getTrackbarPos(trackbarname_param_max, nameWindow)) / float(param_remap))
+    
+    #
+    # for min_param in list_min_only_params:
+    #     trackbarname_param_min = 'min' + min_param
+    #     current_value, (param_min, param_max), param_remap = dict_range_params.get(min_param, (0.5, (0, 1), 1000))
+    #     setattr(params, trackbarname_param_min, cv2.getTrackbarPos(trackbarname_param_min, nameWindow) / param_remap)
 
 #
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
 #
-filename = "Page_09_Pattern_23.png"
-# filename = "Page_09_Pattern_26.png"
+# filename = "Page_09_Pattern_23.png"
+filename = "Page_09_Pattern_26.png"
 
 # url: https://github.com/spmallick/learnopencv/blob/master/BlobDetector/blob.py
 # Read image
@@ -26,47 +103,33 @@ im = cv2.medianBlur(im, 5)
 params = cv2.SimpleBlobDetector_Params()
 
 # Change thresholds
-params.minThreshold = 10
-params.maxThreshold = 200
+# params.minThreshold = 10
+# params.maxThreshold = 200
 
-# Filter by Area.
+# Filters
 params.filterByArea = True
-params.minArea = 60
-params.maxArea = 140
-
-# Filter by Circularity
 params.filterByCircularity = True
-params.minCircularity = 0.075
-
-# Filter by Convexity
 params.filterByConvexity = True
-params.minConvexity = 0.87
-
-# Filter by Inertia
 params.filterByInertia = True
-# params.minInertiaRatio = 0.01
-params.minInertiaRatio = 0.33
 
+dict_ranges_params = {
+    'Threshold': (10, (10, 200), 1),
+    'Area': (256, (0, 1000), 1),
+    'Circularity': (0.75, (0, 1), 1000),
+    'DistBetweenBlobs': (10, (0, 256), 1),
+    'Repeatability': (2, (0, 256), 1),
+    'Threshold': (10, (0, 255), 1),
+    'Convexity': (0.920, (0, 1), 1000),
+    'InertiaRatio': (0.01, (0, 1), 1000)
+}
+nameWindow_Parameters = 'Parameters for SimpleBlobDetector'
+cv2.namedWindow(nameWindow_Parameters, cv2.WINDOW_NORMAL)
+createTrackBar(params, nameWindow_Parameters, onChange, dict_ranges_params)
 
-cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-#
-cv2.createTrackbar('minThreshold', 'image', int(params.minThreshold), 255, nothing)
-cv2.createTrackbar('maxThreshold', 'image', int(params.maxThreshold), 255, nothing)
-#
-cv2.createTrackbar('minArea', 'image', int(params.minArea), 1000, nothing)
-cv2.createTrackbar('maxArea', 'image', int(params.maxArea), 1000, nothing)
-cv2.createTrackbar('minCircularity', 'image', int(params.minCircularity)*1000, 1000, nothing)
-#
-switch_filterByArea = 'filterByArea\n0 : OFF \n1 : ON'
-switch_filterByCircularity = 'filterByCircularity\n0 : OFF \n1 : ON'
-switch_filterByConvexity = 'filterByConvexity\n0 : OFF \n1 : ON'
-switch_filterByInertia = 'filterByInertia\n0 : OFF \n1 : ON'
-cv2.createTrackbar(switch_filterByArea, 'image', params.filterByArea, 1, nothing)
-cv2.createTrackbar(switch_filterByCircularity, 'image', params.filterByCircularity, 1, nothing)
-cv2.createTrackbar(switch_filterByConvexity, 'image', params.filterByConvexity, 1, nothing)
-cv2.createTrackbar(switch_filterByInertia, 'image', params.filterByInertia, 1, nothing)
+nameWindow_Results = 'Results'
+cv2.namedWindow(nameWindow_Results, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(nameWindow_Results, 640, 480)
 
-# cv2.imwrite("extract_circles_notes.png", im_with_keypoints)
 
 update_window = True
 
@@ -76,19 +139,7 @@ while(1):
         break
 
     if update_window:
-        # get current positions of four trackbars
-        canny_lowThreshold = cv2.getTrackbarPos('canny_lowThreshold', 'image')
-        # canny_param2 = cv2.getTrackbarPos('canny_param2', 'image')
-        # canny_apertureSize = cv2.getTrackbarPos('canny_apertureSize', 'image')
-
-        params.filterByArea = bool(cv2.getTrackbarPos(switch_filterByArea, 'image'))
-        params.filterByCircularity = bool(cv2.getTrackbarPos(switch_filterByCircularity, 'image'))
-        params.filterByConvexity = bool(cv2.getTrackbarPos(switch_filterByConvexity, 'image'))
-        params.filterByInertia = bool(cv2.getTrackbarPos(switch_filterByInertia, 'image'))
-
-        params.minArea = cv2.getTrackbarPos('minArea', 'image')
-        params.maxArea = cv2.getTrackbarPos('maxArea', 'image')
-        params.minCircularity = cv2.getTrackbarPos('minCircularity', 'image')/1000.0
+        updateParams(params, nameWindow_Parameters, dict_ranges_params)
 
         # Create a detector with the parameters
         ver = (cv2.__version__).split('.')
@@ -109,6 +160,6 @@ while(1):
             im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         # Show blobs
-        cv2.imshow("image", im_with_keypoints)
+        cv2.imshow(nameWindow_Results, im_with_keypoints)
 
         update_window = False

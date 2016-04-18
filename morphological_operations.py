@@ -4,7 +4,6 @@
 """Summary
 
 Attributes:
-    bitwise_gray (TYPE): Description
     bw (TYPE): Description
     filename (str): Description
     gray (TYPE): Description
@@ -12,12 +11,19 @@ Attributes:
     img_contours (TYPE): Description
     img_contours_2 (TYPE): Description
     img_contours_mskel (TYPE): Description
+    params_detectLines (TYPE): Description
+    params_drawContours (dict): Description
+    params_fillContours (dict): Description
+    params_findContours (TYPE): Description
+    src (TYPE): Description
+    vertical (TYPE): Description
+
+Deleted Attributes:
+    bitwise_gray (TYPE): Description
     minLineLength (int): Description
     minPerimeter (int): Description
-    src (TYPE): Description
     thickness (int): Description
     tup_results (TYPE): Description
-    vertical (TYPE): Description
 """
 import cv2
 import numpy as np
@@ -36,11 +42,11 @@ def showImage(
 
 def morphological_skeleton(img, maxIter=1024):
     """Summary
-    
+
     Args:
         img (TYPE): Description
         maxIter (int, optional): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -65,12 +71,13 @@ def morphological_skeleton(img, maxIter=1024):
     return skel, nbIteration
 
 
-def extract_horizontal(src):
+def extract_horizontal(src, scale=40):
     """Summary
-    
+
     Args:
         src (TYPE): Description
-    
+        scale (int, optional): play with this variable in order to increase/decrease the amount of lines to be detected
+
     Returns:
         TYPE: Description
     """
@@ -79,7 +86,6 @@ def extract_horizontal(src):
     horizontal = src
 
     # Specify size on horizontal axis
-    scale = 40  # play with this variable in order to increase/decrease the amount of lines to be detected
     height, width = horizontal.shape[:2]
     horizontalsize = width / scale
 
@@ -97,23 +103,26 @@ def extract_horizontal(src):
     return horizontal
 
 
-def extract_vertical(src):
+def extract_vertical(src, scale=10):
     """Summary
-    
+
     Args:
         src (TYPE): Description
-    
+        scale (int, optional): play with this variable in order to increase/decrease the amount of lines to be detected
+
     Returns:
         TYPE: Description
     """
     # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
     vertical = src
+
     # Specify size on horizontal axis
-    scale = 60  # play with this variable in order to increase/decrease the amount of lines to be detected
     height, width = vertical.shape[:2]
     verticalsize = height / scale
+
     verticalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (1, verticalsize))
-    print verticalStructure
+    # print verticalStructure
+
     # Apply morphology operations
     vertical = cv2.erode(vertical, verticalStructure)
     vertical = cv2.dilate(vertical, verticalStructure)
@@ -121,12 +130,12 @@ def extract_vertical(src):
     return vertical
 
 
-def dilate(src):
+def morpho_dilate(src):
     """Summary
-    
+
     Args:
         src (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
@@ -145,7 +154,7 @@ def fore_back_ground(img1, img2):
     Args:
         img1 (TYPE): image
         img2 (TYPE): image
-    
+
     Returns:
         TYPE: image
     """
@@ -173,6 +182,142 @@ def fore_back_ground(img1, img2):
 
     return result
 
+# TODO: faire une version générique
+# def renderContours(
+#     img,
+#     contours,
+#     **params)
+
+
+def drawContours_filterByPerimeter(img, contours, **params):
+    """Summary
+
+    Args:
+        img (TYPE): Description
+        contours (TYPE): Description
+        **params (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    #
+    minPerimeter = params.get("minPerimeter", 0)
+    maxPerimeter = params.get("maxPerimeter", 10000)
+    thickness = params.get("thickness", 1)
+    useRandomColor = True
+    #
+    if useRandomColor:
+        for i, contour in enumerate(contours):
+            perimeter = cv2.arcLength(contour, True)
+            if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
+                color_rand = np.random.randint(255, size=3)
+                cv2.drawContours(img, contours, i, color_rand, thickness)
+    else:
+        color = params.get("color", (255, 255, 255))
+        for i, contour in enumerate(contours):
+            perimeter = cv2.arcLength(contour, True)
+            if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
+                cv2.drawContours(img, contours, i, color, thickness)
+
+
+def fillContours_filterByPerimeter(img, contours, **params):
+    """Summary
+
+    Args:
+        img (TYPE): Description
+        contours (TYPE): Description
+        **params (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    #
+    minPerimeter = params.get("minPerimeter", 0)
+    maxPerimeter = params.get("maxPerimeter", 10000)
+    color = params.get("color", (255, 255, 255))
+    #
+    for i, contour in enumerate(contours):
+        perimeter = cv2.arcLength(contour, True)
+        if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
+            cv2.fillPoly(img, pts=contours, color=color)
+
+
+def detectLine_fromContours_filterByPerimeter(img, contours, **params):
+    """Summary
+
+    Args:
+        img (TYPE): Description
+        contours (TYPE): Description
+        **params (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    #
+    minPerimeter = params.get("minPerimeter", 0)
+    maxPerimeter = params.get("maxPerimeter", 10000)
+    thickness = params.get("thickness", 1)
+    color = params.get("color", (255, 255, 255))
+    #
+    for i, contour in enumerate(contours):
+        perimeter = cv2.arcLength(contour, True)
+        if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
+            # url: https://github.com/Itseez/opencv/blob/master/samples/python/fitline.py
+            # url: http://stackoverflow.com/questions/14184147/detect-lines-opencv-in-object
+            # then apply fitline() function
+            [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
+            # [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_HUBER, 0, 0.01, 0.01)
+            # Now find two extreme points on the line to draw line
+            lefty = int((-x * vy / vx) + y)
+            righty = int(((width - x) * vy / vx) + y)
+
+            # Finally draw the line
+            cv2.line(img_contours, (width - 1, righty), (0, lefty), color, thickness)
+
+
+def findContours(img, **params):
+    """Summary
+
+    Args:
+        img (TYPE): Description
+        **params (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    #
+    mode = params.get("mode", cv2.RETR_CCOMP)
+    method = params.get("method", cv2.CHAIN_APPROX_SIMPLE)
+    #
+    # url: http://docs.opencv.org/3.1.0/d4/d73/tutorial_py_contours_begin.html#gsc.tab=0
+    tup_results = cv2.findContours(horizontal, mode, method)  #
+    global contours, hierarchy
+    if len(tup_results) == 3:
+        im2, contours, hierarchy = tup_results
+    else:
+        contours, hierarchy = tup_results
+    # url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
+    # print hierarchy
+    return contours, hierarchy
+
+
+def binarize_img(img):
+    """Summary
+
+    Args:
+        img (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    bitwise_gray = ~gray
+    bw = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    # bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    # minThreshold = 15
+    # maxThreshold = 250
+    # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    return bw
+
 #
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
@@ -189,22 +334,11 @@ src = cv2.imread(filename)
 
 gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 
-# edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-# cv2.namedWindow("", cv2.WINDOW_NORMAL)
-# cv2.imshow("edges - Canny", edges)
-# cv2.waitKey(0)
-# showImage(edges, "edges - canny")
-
 # Binarisation de l'image
-bitwise_gray = ~gray
-bw = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
-# bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
-# minThreshold = 15
-# maxThreshold = 250
-# ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+bw = binarize_img(gray)
 showImage(bw, "Black & White - adaptiveThreshold")
 
-bw = dilate(bw)
+bw = morpho_dilate(bw)
 #
 showImage(bw, "Morpho - Dilatation")
 cv2.imwrite("bw_after_dilate.png", bw)
@@ -220,99 +354,33 @@ vertical = extract_vertical(bw.copy())
 showImage(vertical, "Morpho - extract vertical")
 cv2.imwrite("extract_vertical.png", vertical)
 
-# url: http://docs.opencv.org/3.1.0/d4/d73/tutorial_py_contours_begin.html#gsc.tab=0
-# im2, contours, hierarchy =
-# contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-# contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-# im2, contours, hierarchy = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  # version 3.1.0
-tup_results = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)  #
-# tup_results = cv2.findContours(horizontal, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_TC89_L1)  #
-global contours, hierarchy
-if len(tup_results) == 3:
-    im2, contours, hierarchy = tup_results
-    # cv2.imshow("window", im2)
-    # cv2.waitKey(0)
-    # cv2.imwrite("extract_contours_image.png", im2)
-else:
-    contours, hierarchy = tup_results
-
-# url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
-print hierarchy
-
+params_findContours = {"mode": cv2.RETR_CCOMP, "method": cv2.CHAIN_APPROX_SIMPLE}
+contours, hierarchy = findContours(horizontal, **params_findContours)
 
 height, width = src.shape[:2]
 img_contours = src.copy()
 img_contours_2 = np.zeros((height, width, 1), np.uint8)
 
-# for i, c in enumerate(contours):
-#     peri = cv2.arcLength(c, True)
-#     cv2.drawContours(img_contours, c, i, np.random.randint(255, size=3), 1)
-minPerimeter = 2000
-thickness = 1
-for i, contour in enumerate(contours):
-    perimeter = cv2.arcLength(contour, True)
-    # print "contours - perimeter= ", perimeter
-    if perimeter >= minPerimeter:
-        color_rand = np.random.randint(255, size=3)
+params_drawContours = {"minPerimeter": 2000, "useRandomColor": True, "thickness": 1}
+params_fillContours = {"minPerimeter": 2000, "thickness": 1}
+#
+drawContours_filterByPerimeter(img_contours, contours, **params_drawContours)
+# merge de dict python -> url: http://stackoverflow.com/a/39858
+fillContours_filterByPerimeter(img_contours, contours, **dict(params_fillContours, **{'color': (0, 255, 255)}))
+#
+drawContours_filterByPerimeter(img_contours_2, contours, **params_drawContours)
+fillContours_filterByPerimeter(img_contours_2, contours, **params_fillContours)
 
-        cv2.drawContours(img_contours, contours, i, color_rand, thickness)
-        cv2.fillPoly(img_contours, pts=contours, color=(0, 255, 255))
-
-        cv2.drawContours(img_contours_2, contours, i, color_rand, thickness)
-        cv2.fillPoly(img_contours_2, pts=contours, color=(255, 255, 255))
-
-        # contour_flat = [item for sublist in contour for item in sublist]
-        # for point in contour_flat:
-        #     cv2.circle(img_contours, tuple(point), 5, 255 - color_rand)
-        # contour_gradients = np.gradient(contour_flat)
-        # print "gradient: ", np.gradient(contour_gradients)
-
-minPerimeter = 2000
-thickness = 1
-for i, contour in enumerate(contours):
-    perimeter = cv2.arcLength(contour, True)
-    # print "contours - perimeter= ", perimeter
-    if perimeter >= minPerimeter:
-        # url: https://github.com/Itseez/opencv/blob/master/samples/python/fitline.py
-        # url: http://stackoverflow.com/questions/14184147/detect-lines-opencv-in-object
-        # then apply fitline() function
-        [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
-        # [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_HUBER, 0, 0.01, 0.01)
-        # Now find two extreme points on the line to draw line
-        lefty = int((-x*vy/vx) + y)
-        righty = int(((width-x)*vy/vx)+y)
-
-        # Finally draw the line
-        cv2.line(img_contours, (width-1, righty), (0, lefty), (255, 0, 0), 1)
-
-# cv2.imshow("window", img_contours)
-# cv2.waitKey(0)
+params_detectLines = dict(params_fillContours, **{'color': (255, 0, 0)})
+detectLine_fromContours_filterByPerimeter(img_contours, contours, **params_detectLines)
 
 img_contours_mskel, nbIter = morphological_skeleton(img_contours_2.copy())
 showImage(img_contours_mskel, "img_contours_2 + MorphoSkel")
 
-minLineLength = 0
 img_contours_2 = cv2.Canny(img_contours_2, 150, 700, apertureSize=5)
 showImage(img_contours_2, "Contours - Canny")
 
-#
-# lines = cv2.HoughLinesP(img_contours_2, rho=1,
-#                         theta=math.pi / 180, threshold=70,
-#                         minLineLength=50, maxLineGap=25
-#                         )
-# for line in lines:
-# print line
-#     x1, y1, x2, y2 = line[0]
-#     cv2.line(img_contours, (x1, y1), (x2, y2), (0, 255, 0), 1)
-# showImage(img_contours, "HoughLinesP")
-# cv2.imwrite("extract_contours.png", img_contours)
-
 showImage(img_contours, "Contours - Couleurs")
-
-# url:
-# http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_core/py_image_arithmetics/py_image_arithmetics.html
-# img_contours_vertical = cv2.addWeighted(img_contours, 1.0, cv2.cvtColor(vertical, cv2.COLOR_GRAY2BGR), 1.0, 0)
-# showImage(img_contours_vertical, "Contours + Verticals - Couleurs")
 
 img_contours_mskel = cv2.cvtColor(img_contours_mskel, cv2.COLOR_GRAY2BGR)
 # url: stackoverflow.com/questions/11433604/opencv-setting-all-pixels-of-specific-bgr-value-to-another-bgr-value

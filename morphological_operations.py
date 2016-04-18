@@ -275,6 +275,30 @@ def detectLine_fromContours_filterByPerimeter(img, contours, **params):
             cv2.line(img_contours, (width - 1, righty), (0, lefty), color, thickness)
 
 
+def detectLine_LSD(src, minLength=-1):
+    """Summary
+        LSD: Line Segment Detector
+    Args:
+        src (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+    width, height = src.shape
+    dst = np.zeros((width, height, 3), np.uint8)
+    ls = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
+    tup_results = ls.detect(cv2.medianBlur(src, 5))
+    lines = tup_results[0]
+    if lines is not None:
+        if minLength == -1:
+            print("lines", len(lines))
+            ls.drawSegments(dst, lines)
+        else:
+            print("lines", len(lines))
+            ls.drawSegments(dst, lines[:, 0])
+    return dst
+
+
 def findContours(img, **params):
     """Summary
 
@@ -342,6 +366,9 @@ bw = morpho_dilate(bw)
 #
 showImage(bw, "Morpho - Dilatation")
 cv2.imwrite("bw_after_dilate.png", bw)
+
+# LSD
+showImage(detectLine_LSD(bw, 50 * 50), "LSD")
 
 # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
 horizontal = extract_horizontal(bw.copy())

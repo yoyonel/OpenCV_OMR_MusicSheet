@@ -84,10 +84,10 @@ if __name__ == '__main__':
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         width, height = gray.shape
-        blank_image = np.zeros((width,height,3), np.uint8)
+        blank_image = np.zeros((width, height, 3), np.uint8)
 
         # Canny Edge Detector
-        # thrs1 = cv2.getTrackbarPos('thrs1', 'edge')        
+        # thrs1 = cv2.getTrackbarPos('thrs1', 'edge')
         # thrs2 = cv2.getTrackbarPos('thrs2', 'edge')
         # edge = cv2.Canny(blank_image, thrs1, thrs2, apertureSize=5)
         # vis = img.copy()
@@ -102,13 +102,13 @@ if __name__ == '__main__':
         tup_results = ls.detect(cv2.medianBlur(gray, 5))
         lines = tup_results[0]
         if lines is not None:
-            print("lines", len(lines))            
+            print("lines", len(lines))
             ls.drawSegments(edge, lines)
-            
-            # cv2.imshow('edge', edge)    
+
+            # cv2.imshow('edge', edge)
 
             vis = img.copy()
-            vis = np.uint8(vis/2.)            
+            vis = np.uint8(vis / 2.)
             # vis[edge != 0] = (0, 255, 0)
             cv2.imshow('edge', fore_back_ground(vis, edge))
 

@@ -24,42 +24,18 @@ import video
 import sys
 
 
-def fore_back_ground(img1, img2):
-    """Summary
-        Dessine img2 dans img1 en créant un mask (binaire) d'image lié à ces intensités de couleurs.
-        Le noir (0, 0, 0) est considéré totalement transparent.
-        Toute les autres couleurs (à partir d'une certaine intensité => threshold de 10 à 255) sont opaques.
+def inside(r, q):
+    rx, ry, rw, rh = r
+    qx, qy, qw, qh = q
+    return rx > qx and ry > qy and rx + rw < qx + qw and ry + rh < qy + qh
 
-    Args:
-        img1 (TYPE): image
-        img2 (TYPE): image
 
-    Returns:
-        TYPE: image
-    """
-    # url: http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_core/py_image_arithmetics/py_image_arithmetics.html
-    # I want to put logo on top-left corner, So I create a ROI
-    rows, cols, channels = img2.shape
-    roi = img1[0:rows, 0:cols]
-
-    # Now create a mask of logo and create its inverse mask also
-    img2gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-    ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
-    mask_inv = cv2.bitwise_not(mask)
-
-    # Now black-out the area of logo in ROI
-    img1_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
-
-    # Take only region of logo from logo image.
-    img2_fg = cv2.bitwise_and(img2, img2, mask=mask)
-
-    # Put logo in ROI and modify the main image
-    dst = cv2.add(img1_bg, img2_fg)
-
-    result = img1.copy()
-    result[0:rows, 0:cols] = dst
-
-    return result
+def draw_detections(img, rects, thickness=1):
+    for x, y, w, h in rects:
+        # the HOG detector returns slightly larger rectangles than the real objects.
+        # so we slightly shrink the rectangles to get a nicer output.
+        pad_w, pad_h = int(0.15 * w), int(0.05 * h)
+        cv2.rectangle(img, (x + pad_w, y + pad_h), (x + w - pad_w, y + h - pad_h), (0, 255, 0), thickness)
 
 if __name__ == '__main__':
     print(__doc__)
@@ -73,11 +49,14 @@ if __name__ == '__main__':
         pass
 
     cv2.namedWindow('edge')
-    cv2.createTrackbar('thrs1', 'edge', 2000, 5000, nothing)
-    cv2.createTrackbar('thrs2', 'edge', 4000, 5000, nothing)
+    # cv2.createTrackbar('thrs1', 'edge', 2000, 5000, nothing)
+    # cv2.createTrackbar('thrs2', 'edge', 4000, 5000, nothing)
 
     cap = video.create_capture(fn)
     ls = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
+
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
     while True:
         flag, img = cap.read()
@@ -86,31 +65,56 @@ if __name__ == '__main__':
         width, height = gray.shape
         blank_image = np.zeros((width, height, 3), np.uint8)
 
-        # Canny Edge Detector
-        # thrs1 = cv2.getTrackbarPos('thrs1', 'edge')
-        # thrs2 = cv2.getTrackbarPos('thrs2', 'edge')
-        # edge = cv2.Canny(blank_image, thrs1, thrs2, apertureSize=5)
-        # vis = img.copy()
-        # vis = np.uint8(vis/2.)
-        # vis[edge != 0] = (0, 255, 0)
-        # cv2.imshow('edge', vis)
-
         # LSD Edge Detector
+        edge = blank_image
         # url: http://docs.opencv.org/3.0-beta/modules/imgproc/doc/feature_detection.html
-        edge = blank_image.copy()
-
+        # on detecte les lignes dans l'image des gris de la webcam
+        # on applique un filtre blur median dessus avant (pour stabiliser l'image et les discontinuites)
         tup_results = ls.detect(cv2.medianBlur(gray, 5))
+        # extract lines from result
         lines = tup_results[0]
+        # Si on trouve des lignes
         if lines is not None:
             print("lines", len(lines))
+            # On les affiche
+            # Ps: edge est l'image de destination qui est une image RGB (car blank_image est RGB)
+            # Il faut une image RGB, car drawSegment dessine dans une RGB (lignes rouges)
             ls.drawSegments(edge, lines)
 
-            # cv2.imshow('edge', edge)
+            # extract red component of edge image
+            # maintenant edge est au format (widht, height, 1)
+            # urls:
+            # - http://knowpapa.com/greyscale-opencv/
+            # - http://knowpapa.com/opencv-rgb-split/
+            edge = edge[:, :, 2]
 
+            # copy de l'image issue de la webcam
             vis = img.copy()
+            # on réduit par 2 l'intensite de l'image (webcam)
             vis = np.uint8(vis / 2.)
-            # vis[edge != 0] = (0, 255, 0)
-            cv2.imshow('edge', fore_back_ground(vis, edge))
+
+            # Utilisation d'edge comme un masque
+            # Fusion d'edge et visu avec priorite edge
+            # On remplace les pixels actifs (anciennement rouge) d'edge
+            # par des pixels vers dans vis => les lignes de detections seront vertes
+            vis[edge != 0] = (0, 255, 0)
+
+            cv2.imshow('edge', vis)
+
+        #
+        found, w = hog.detectMultiScale(img, winStride=(8, 8), padding=(32, 32), scale=1.05)
+        print(found)
+        found_filtered = []
+        for ri, r in enumerate(found):
+            for qi, q in enumerate(found):
+                if ri != qi and inside(r, q):
+                    break
+            else:
+                found_filtered.append(r)
+        draw_detections(img, found)
+        draw_detections(img, found_filtered, 3)
+        print('%d (%d) found' % (len(found_filtered), len(found)))
+        cv2.imshow('edge', img)
 
         ch = cv2.waitKey(5) & 0xFF
         if ch == 27:

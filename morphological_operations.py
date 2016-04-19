@@ -27,7 +27,7 @@ Deleted Attributes:
 """
 import cv2
 import numpy as np
-import math
+# import math
 
 
 def showImage(
@@ -275,7 +275,7 @@ def detectLine_fromContours_filterByPerimeter(img, contours, **params):
             cv2.line(img_contours, (width - 1, righty), (0, lefty), color, thickness)
 
 
-def detectLine_LSD(src, minLength=-1):
+def detectLine_LSD(src, minLength2=-1):
     """Summary
         LSD: Line Segment Detector
     Args:
@@ -290,12 +290,17 @@ def detectLine_LSD(src, minLength=-1):
     tup_results = ls.detect(cv2.medianBlur(src, 5))
     lines = tup_results[0]
     if lines is not None:
-        if minLength == -1:
-            print("lines", len(lines))
-            ls.drawSegments(dst, lines)
-        else:
-            print("lines", len(lines))
-            ls.drawSegments(dst, lines[:, 0])
+        if minLength2 != -1:
+            def length2(line):
+                return (line[0][0]-line[0][2])**2 + (line[0][1]-line[0][3])**2
+            lines = np.array(
+                filter(
+                    lambda line: length2(line) >= minLength2,
+                    lines
+                )
+            )
+        print "# Lines: ", len(lines)
+        ls.drawSegments(dst, lines[:, 0])
     return dst
 
 
@@ -348,8 +353,8 @@ def binarize_img(img):
 #
 # filename = "Page_09_Pattern_23.png"
 # filename = "Page_09_Pattern_24.png"
-# filename = "Page_09_Pattern_25.png"
-filename = "Page_09_Pattern_26.png"
+filename = "Page_09_Pattern_25.png"
+# filename = "Page_09_Pattern_26.png"
 #
 # filename = "Page_09_Pattern_23_rot90.png"
 # filename = "rotate_image.png"
@@ -357,6 +362,9 @@ filename = "Page_09_Pattern_26.png"
 src = cv2.imread(filename)
 
 gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+
+# LSD
+showImage(detectLine_LSD(gray, 50 * 50), "LSD")
 
 # Binarisation de l'image
 bw = binarize_img(gray)
@@ -366,9 +374,6 @@ bw = morpho_dilate(bw)
 #
 showImage(bw, "Morpho - Dilatation")
 cv2.imwrite("bw_after_dilate.png", bw)
-
-# LSD
-showImage(detectLine_LSD(bw, 50 * 50), "LSD")
 
 # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
 horizontal = extract_horizontal(bw.copy())

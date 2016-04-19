@@ -288,7 +288,8 @@ def detectLine_LSD(src, minLength2=-1):
     dst = np.zeros((width, height, 3), np.uint8)
     ls = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
     tup_results = ls.detect(cv2.medianBlur(src, 5))
-    lines = tup_results[0]
+    lines, widths, _, _ = tup_results
+    print widths
     if lines is not None:
         if minLength2 != -1:
             def length2(line):
@@ -300,7 +301,7 @@ def detectLine_LSD(src, minLength2=-1):
                 )
             )
         print "# Lines: ", len(lines)
-        ls.drawSegments(dst, lines[:, 0])
+        ls.drawSegments(dst, lines)
     return dst
 
 
@@ -353,8 +354,8 @@ def binarize_img(img):
 #
 # filename = "Page_09_Pattern_23.png"
 # filename = "Page_09_Pattern_24.png"
-filename = "Page_09_Pattern_25.png"
-# filename = "Page_09_Pattern_26.png"
+# filename = "Page_09_Pattern_25.png"
+filename = "Page_09_Pattern_26.png"
 #
 # filename = "Page_09_Pattern_23_rot90.png"
 # filename = "rotate_image.png"

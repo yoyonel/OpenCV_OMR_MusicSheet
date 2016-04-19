@@ -66,12 +66,12 @@ def morphological_skeleton(img, maxIter=1024):
         cv2.bitwise_or(skel, temp, skel)
         img = eroded
         nbIteration += 1
-        done = (cv2.countNonZero(img) == 0) and (nbIteration < maxIter)
+        done = (cv2.countNonZero(img) == 0) or (nbIteration >= maxIter)
 
     return skel, nbIteration
 
 
-def extract_horizontal(src, scale=40):
+def extract_horizontal(src, scale=30):
     """Summary
 
     Args:
@@ -103,7 +103,7 @@ def extract_horizontal(src, scale=40):
     return horizontal
 
 
-def extract_vertical(src, scale=10):
+def extract_vertical(src, scale=30):
     """Summary
 
     Args:
@@ -130,7 +130,7 @@ def extract_vertical(src, scale=10):
     return vertical
 
 
-def morpho_dilate(src):
+def morpho_dilate(src, kernelSize=2):
     """Summary
 
     Args:
@@ -141,8 +141,22 @@ def morpho_dilate(src):
     """
     # url:
     # http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
-    kernel = np.ones((2, 2), np.uint8)
+    kernel = np.ones((kernelSize, kernelSize), np.uint8)
     return cv2.dilate(src, kernel, iterations=1)
+
+
+def morpho_erode(src, kernelSize=2):
+    """Summary
+
+    Args:
+        src (TYPE): Description
+        kernelSize (int, optional): Description
+
+    Returns:
+        TYPE: Description
+    """
+    kernel = np.ones((kernelSize, kernelSize), np.uint8)
+    return cv2.erode(src, kernel, iterations=1)
 
 
 def fore_back_ground(img1, img2):
@@ -242,7 +256,7 @@ def fillContours_filterByPerimeter(img, contours, **params):
             cv2.fillPoly(img, pts=contours, color=color)
 
 
-def detectLine_fromContours_filterByPerimeter(img, contours, **params):
+def detectLine_fromContours_filterByPerimeter(_img, contours, **params):
     """Summary
 
     Args:
@@ -272,7 +286,7 @@ def detectLine_fromContours_filterByPerimeter(img, contours, **params):
             righty = int(((width - x) * vy / vx) + y)
 
             # Finally draw the line
-            cv2.line(img_contours, (width - 1, righty), (0, lefty), color, thickness)
+            cv2.line(_img, (width - 1, righty), (0, lefty), color, thickness)
 
 
 def detectLine_LSD(src, minLength2=-1):
@@ -293,10 +307,10 @@ def detectLine_LSD(src, minLength2=-1):
     if lines is not None:
         if minLength2 != -1:
             def length2(line):
-                return (line[0][0]-line[0][2])**2 + (line[0][1]-line[0][3])**2
+                return (line[0][0] - line[0][2])**2 + (line[0][1] - line[0][3])**2
             lines = np.array(
                 filter(
-                    lambda line: length2(line) >= minLength2,
+                    lambda line: length2(line) <= minLength2,
                     lines
                 )
             )
@@ -340,12 +354,14 @@ def binarize_img(img):
     Returns:
         TYPE: Description
     """
-    bitwise_gray = ~gray
-    bw = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    bitwise_gray = ~img
+    # bitwise_gray = cv2.medianBlur(cv2.Scharr(bitwise_gray, cv2.CV_8U, 0, 1), 5)
+    # bw = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
     # bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
-    # minThreshold = 15
-    # maxThreshold = 250
-    # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    minThreshold = 15
+    maxThreshold = 255
+    ret, bw = cv2.threshold(bitwise_gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     return bw
 
 #
@@ -365,10 +381,12 @@ src = cv2.imread(filename)
 gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 
 # LSD
-showImage(detectLine_LSD(gray, 50 * 50), "LSD")
+line_length = 30
+showImage(detectLine_LSD(gray, line_length ** 2), "LSD")
 
 # Binarisation de l'image
 bw = binarize_img(gray)
+bin_img = bw.copy()
 showImage(bw, "Black & White - adaptiveThreshold")
 
 bw = morpho_dilate(bw)
@@ -382,10 +400,23 @@ horizontal = extract_horizontal(bw.copy())
 showImage(horizontal, "Morpho - extract horizontal")
 cv2.imwrite("extract_horizontal.png", horizontal)
 
+remove_horizontal = bin_img.copy()
+remove_horizontal[horizontal == 255] = 0
+remove_horizontal = cv2.medianBlur(remove_horizontal, 5)
+showImage(remove_horizontal, "remove_horizontal")
+
 vertical = extract_vertical(bw.copy())
 #
 showImage(vertical, "Morpho - extract vertical")
 cv2.imwrite("extract_vertical.png", vertical)
+
+add_vertical = remove_horizontal.copy()
+add_vertical[vertical == 255] = 255
+add_vertical = cv2.GaussianBlur(morpho_dilate(add_vertical, 3), (5, 5), 0)
+showImage(add_vertical, "add_vertical")
+
+add_vertical_mskel, nbIter = morphological_skeleton(add_vertical.copy())
+showImage(add_vertical_mskel, "add_vertical + MorphoSkel - nbIter={0}".format(nbIter))
 
 params_findContours = {"mode": cv2.RETR_CCOMP, "method": cv2.CHAIN_APPROX_SIMPLE}
 contours, hierarchy = findContours(horizontal, **params_findContours)
@@ -408,7 +439,7 @@ params_detectLines = dict(params_fillContours, **{'color': (255, 0, 0)})
 detectLine_fromContours_filterByPerimeter(img_contours, contours, **params_detectLines)
 
 img_contours_mskel, nbIter = morphological_skeleton(img_contours_2.copy())
-showImage(img_contours_mskel, "img_contours_2 + MorphoSkel")
+showImage(img_contours_mskel, "img_contours_2 + MorphoSkel - nbIter={0}".format(nbIter))
 
 img_contours_2 = cv2.Canny(img_contours_2, 150, 700, apertureSize=5)
 showImage(img_contours_2, "Contours - Canny")
@@ -423,6 +454,22 @@ img_contours_mskel[np.where((img_contours_mskel == [255, 255, 255]).all(axis=2))
 img_contours_mskel = fore_back_ground(img_contours, img_contours_mskel)
 
 showImage(img_contours_mskel, "Contours + MSkel - Couleurs")
+
+_, contours, hierarchy = cv2.findContours(add_vertical.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  # get contours
+# for each contour found, draw a rectangle around it on original image
+for contour in contours:
+    # get rectangle bounding contour
+    [x, y, w, h] = cv2.boundingRect(contour)
+    # discard areas that are too large
+    # if h > 300 and w > 300:
+    #     continue
+    # discard areas that are too small
+    # if h < 40 or w < 40:
+    #     continue
+    # draw rectangle around contour on original image
+    cv2.rectangle(src, (x, y), (x + w, y + h), (200, 64, 255), 3)
+
+src[img_contours == (255, 0, 0)] = img_contours[img_contours == (255, 0, 0)]
 
 showImage(src, "Source")
 

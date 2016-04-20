@@ -161,9 +161,9 @@ def morpho_erode(src, kernelSize=2):
 
 def fore_back_ground(img1, img2):
     """Summary
-        Dessine img2 dans img1 en créant un mask (binaire) d'image lié à ces intensités de couleurs.
+        Dessine img2 dans img1 en creant un mask (binaire) d'image lié à ces intensités de couleurs.
         Le noir (0, 0, 0) est considéré totalement transparent.
-        Toute les autres couleurs (à partir d'une certaine intensité => threshold de 10 à 255) sont opaques.
+        Toute les autres couleurs (à partir d'une certaine intensite => threshold de 10 à 255) sont opaques.
 
     Args:
         img1 (TYPE): image
@@ -354,14 +354,20 @@ def binarize_img(img):
     Returns:
         TYPE: Description
     """
+
     bitwise_gray = ~img
+
     # bitwise_gray = cv2.medianBlur(cv2.Scharr(bitwise_gray, cv2.CV_8U, 0, 1), 5)
+    # bitwise_gray = cv2.medianBlur(bitwise_gray, 5)
+
     # bw = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+
     # bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
 
-    minThreshold = 15
+    minThreshold = 200
     maxThreshold = 255
     ret, bw = cv2.threshold(bitwise_gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
     return bw
 
 #

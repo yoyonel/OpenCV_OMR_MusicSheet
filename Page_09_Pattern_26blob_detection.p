@@ -22,7 +22,7 @@ p8
 I01
 sS'minConvexity'
 p9
-F0.92000001668930054
+F0.79600000381469727
 sS'filterByConvexity'
 p10
 I01
@@ -40,7 +40,7 @@ p14
 L2L
 sS'maxInertiaRatio'
 p15
-F0.58399999141693115
+F0.58300000429153442
 sS'maxConvexity'
 p16
 F1

@@ -176,8 +176,8 @@ def updateParams(params, nameWindow, dict_range_params={}):
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
 #
-filename = "Page_09_Pattern_23.png"
-# filename = "Page_09_Pattern_24.png"
+# filename = "Page_09_Pattern_23.png"
+filename = "Page_09_Pattern_24.png"
 # filename = "Page_09_Pattern_25.png"
 # filename = "Page_09_Pattern_26.png"
 

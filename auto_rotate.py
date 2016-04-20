@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
     edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-    cv2.imshow("window", edges)
+    cv2.imshow("window", ~edges)
     cv2.waitKey(0)
     bw = cv2.adaptiveThreshold(~edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
     # bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)

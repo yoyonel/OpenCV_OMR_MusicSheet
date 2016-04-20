@@ -77,6 +77,7 @@ def findContoursMusicSymbols(src, dst, thickness=2, checkConvexivity=True):
             # url:
             # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
             hull = cv2.convexHull(contour, returnPoints=False)
+            # http://docs.opencv.org/2.4/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours
             defects = cv2.convexityDefects(contour, hull)
 
             if defects is not None:
@@ -86,6 +87,8 @@ def findContoursMusicSymbols(src, dst, thickness=2, checkConvexivity=True):
                     # end = tuple(contour[e][0])
                     far = tuple(contour[f][0])
                     # cv2.line(dst, start, end, [0, 255, 0], 1)
+                    # url:
+                    # http://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/point_polygon_test/point_polygon_test.html
                     true_distance = cv2.pointPolygonTest(pts_hull, far, True)
                     min_distance = 2.5
                     color_circle = (color_rand) if (true_distance > min_distance) else (0, 0, 0)

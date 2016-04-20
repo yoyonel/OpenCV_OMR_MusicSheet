@@ -72,13 +72,13 @@ def update_TrackBars_From_Params(params, nameWindow, dict_range_params):
         current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, TUP_RANGE_PARAMS_RATIO)
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_min,
-            nameWindow,  int(getattr(params, trackbarname_param_min)*param_remap)
-            )
+            nameWindow, int(getattr(params, trackbarname_param_min) * param_remap)
+        )
 
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_max,
-            nameWindow,  int(getattr(params, trackbarname_param_max)*param_remap)
-            )
+            nameWindow, int(getattr(params, trackbarname_param_max) * param_remap)
+        )
 
     for min_param in list_min_only_params:
         trackbarname_param_min = 'min' + minmax_param
@@ -86,8 +86,8 @@ def update_TrackBars_From_Params(params, nameWindow, dict_range_params):
         current_value, (param_min, param_max), param_remap = dict_range_params.get(min_param, TUP_RANGE_PARAMS_RATIO)
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_min,
-            nameWindow,  int(getattr(params, trackbarname_param_min)*param_remap)
-            )
+            nameWindow, int(getattr(params, trackbarname_param_min) * param_remap)
+        )
 
 
 def createTrackBar(params, nameWindow, callback, dict_range_params={}):
@@ -176,17 +176,15 @@ def updateParams(params, nameWindow, dict_range_params={}):
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
 #
-# filename = "Page_09_Pattern_23.png"
-filename = "Page_09_Pattern_24.png"
+filename = "Page_09_Pattern_23.png"
+# filename = "Page_09_Pattern_24.png"
 # filename = "Page_09_Pattern_25.png"
 # filename = "Page_09_Pattern_26.png"
 
 # url: https://github.com/spmallick/learnopencv/blob/master/BlobDetector/blob.py
 # Read image
-# im = cv2.imread("BlobTest.jpg", cv2.IMREAD_GRAYSCALE)
-# im = cv2.imread("Page_09_Pattern_23.png", cv2.IMREAD_GRAYSCALE)
 im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-
+im = cv2.fastNlMeansDenoising(im, None, 10, 7, 21)
 im = cv2.medianBlur(im, 5)
 
 # Setup SimpleBlobDetector parameters.

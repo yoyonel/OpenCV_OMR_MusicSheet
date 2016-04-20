@@ -13,9 +13,9 @@ import sys
 # filename = "Page_09_Pattern_25.png"
 # filename = "Page_09_Pattern_26.png"
 #
-# filename = "Page_09_Pattern_23_rot90.png"
+filename = "Page_09_Pattern_23_rot90.png"
 # filename = "Page_09_Pattern_24_rot.png"
-filename = "Page_09_Pattern_26_rot_crop.png"
+# filename = "Page_09_Pattern_26_rot_crop.png"
 #
 # filename = "rotate_image.png"
 
@@ -125,7 +125,7 @@ def rotate_image_2(mat, angle):
     rotation_mat[0, 2] += ((bound_w / 2) - image_center[0])
     rotation_mat[1, 2] += ((bound_h / 2) - image_center[1])
 
-    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h))
+    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h), borderValue=(255, 255, 255))
     return rotated_mat
 
 
@@ -135,27 +135,53 @@ if __name__ == '__main__':
     src = cv2.imread(filename)
     src2 = src.copy()
 
+    #############################
     gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-    #
-    # minThreshold = 0  #
+
+    ####
+    gray = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+    # cv2.imshow('window', gray)
+    # cv2.waitKey(0)
+
+    # minThreshold = 15
     # maxThreshold = 255
-    # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    # #
+    # # ret, gray = cv2.threshold(gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    # # #
+    # bitwise_gray = ~gray
+    # # bitwise_gray = cv2.medianBlur(bitwise_gray, 3)
+    # # cv2.imshow('bitwise_gray medianBlur', bitwise_gray)
+
+    # # gray = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, -2)
+    # ret, gray = cv2.threshold(bitwise_gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    # # gray = cv2.fastNlMeansDenoising(gray)
+    # # cv2.imshow('gray', gray)
+    ####
+
+    #
+    minThreshold = 0  #
+    maxThreshold = 255
+    ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
     edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-    cv2.imshow("window", ~edges)
+    edges = ~edges
+    cv2.imshow("window", edges)
     cv2.waitKey(0)
-    bw = cv2.adaptiveThreshold(~edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+
+    # bw = edges
+    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
     # bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
 
     # cv2.imshow("bw", bw)
     # cv2.waitKey(0)
     # url: http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html
     cv2.imwrite("bw.png", bw)
+    #############################
 
     minLineLength = 0
     lines = cv2.HoughLinesP(bw, rho=1,
                             theta=math.pi / 180, threshold=70,
-                            minLineLength=50, maxLineGap=10
+                            minLineLength=50, maxLineGap=5
                             )
     # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
     # print lines
@@ -179,10 +205,7 @@ if __name__ == '__main__':
 
             angles.append(angle)
             # print "angle: ", angle
-            if angle > 0:
-                cv2.line(src, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            else:
-                cv2.line(src, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            cv2.line(src, (x1, y1), (x2, y2), (0, 255, 0) if angle > 0 else (255, 0, 0), 2)
 
             # weight = math.sqrt(dy**2 + dx**2)
             # weights.append(weight)
@@ -194,7 +217,8 @@ if __name__ == '__main__':
     # - http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html#numpy.histogram
     # - http://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html#gsc.tab=0
     # hist, bin_edges = np.histogram(angles, density=False, normed=False, weights=weights)
-    hist, bin_edges = np.histogram(angles, 1000, density=True)  # un peu bourrrin l'histogramme :p
+    nb_bins = 1000  # un peu bourrrin l'histogramme :p
+    hist, bin_edges = np.histogram(angles, nb_bins, density=True)
     hist *= np.diff(bin_edges)
     #
     print "hist: ", hist

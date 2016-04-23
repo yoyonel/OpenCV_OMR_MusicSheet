@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 import math
 import sys
-
+# import pylab as P
+import matplotlib.pyplot as plt
+# import matplotlib.mlab as mlab
 
 #
 # filename = "Page_09_HD.jpg"
@@ -11,10 +13,10 @@ import sys
 # filename = "Page_09_Pattern_23.png"
 # filename = "Page_09_Pattern_24.png"
 # filename = "Page_09_Pattern_25.png"
-filename = "Page_09_Pattern_26.png"
+# filename = "Page_09_Pattern_26.png"
 #
 # filename = "Page_09_Pattern_23_rot90.png"
-# filename = "Page_09_Pattern_24_rot.png"
+filename = "Page_09_Pattern_24_rot.png"
 # filename = "Page_09_Pattern_26_rot_crop.png"
 #
 # filename = "rotate_image.png"
@@ -146,16 +148,16 @@ if __name__ == '__main__':
     # minThreshold = 15
     # maxThreshold = 255
     # #
-    # # ret, gray = cv2.threshold(gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    # ret, gray = cv2.threshold(gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     # # #
     # bitwise_gray = ~gray
-    # # bitwise_gray = cv2.medianBlur(bitwise_gray, 3)
-    # # cv2.imshow('bitwise_gray medianBlur', bitwise_gray)
+    # bitwise_gray = cv2.medianBlur(bitwise_gray, 3)
+    # cv2.imshow('bitwise_gray medianBlur', bitwise_gray)
 
-    # # gray = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, -2)
+    # gray = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, -2)
     # ret, gray = cv2.threshold(bitwise_gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    # # gray = cv2.fastNlMeansDenoising(gray)
-    # # cv2.imshow('gray', gray)
+    # gray = cv2.fastNlMeansDenoising(gray)
+    # cv2.imshow('gray', gray)
     ####
 
     #
@@ -213,6 +215,8 @@ if __name__ == '__main__':
 
     # print "angles: ", angles
 
+    angles = sorted(angles, key=lambda _: np.random.rand())
+
     # url:
     # - http://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html#numpy.histogram
     # - http://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html#gsc.tab=0
@@ -223,15 +227,22 @@ if __name__ == '__main__':
     #
     print "hist: ", hist
     print "bin_edges: ", bin_edges
+    print "angles:", angles
 
     hist = hist.tolist()
     max_value = max(hist)
     print 'max value: ', max_value
     index_of_max = hist.index(max_value)
     angle_for_max = bin_edges[index_of_max]
-    #
+    print "(hist) angle for max: ", angle_for_max
     print "index of max in hist: ", index_of_max
-    print "angle for max: ", angle_for_max
+
+    angles_around_angle_max = filter(lambda angle: abs(angle - angle_for_max) < 0.1, angles)
+    if angles_around_angle_max:
+        angle_for_max = max(angles_around_angle_max)
+        print("angles_around_angle_max: ", angles_around_angle_max)
+        #
+        print "angle for max: ", angle_for_max
 
     cv2.imshow("window", src)
     cv2.imwrite("houghlines3.png", src)
@@ -245,3 +256,87 @@ if __name__ == '__main__':
     cv2.imshow("window", dst)
     cv2.imwrite("rotate_image.png", dst)
     cv2.waitKey(0)
+
+    # mu, sigma = 200, 25
+    # x = angles
+    # the histogram of the data with histtype='step'
+    # n, bins, patches = P.hist(x, 5000, normed=1, histtype='stepfilled')
+    # P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
+    # P.show()
+
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # mu, sigma = 100, 15
+    # x = angles
+    # the histogram of the data
+    # n, bins, patches = ax.hist(x, 50, normed=1, facecolor='green', alpha=0.75)
+
+    # hist uses np.histogram under the hood to create 'n' and 'bins'.
+    # np.histogram returns the bin edges, so there will be 50 probability
+    # density values in n, 51 bin edges in bins and 50 patches.  To get
+    # everything lined up, we'll compute the bin centers
+    # bincenters = 0.5 * (bins[1:] + bins[:-1])
+    # print("bincenters: ", bincenters)
+    # print("average(bincenters): ", np.average(bincenters))
+    # add a 'best fit' line for the normal PDF
+    # y = mlab.normpdf(bincenters, mu, sigma)
+    # l = ax.plot(bincenters, y, 'r--', linewidth=2)
+
+    # ax.set_xlabel('Smarts')
+    # ax.set_ylabel('Probability')
+    # ax.set_title(r'$\mathrm{Histogram\ of\ IQ:}\ \mu=100,\ \sigma=15$')
+    # ax.set_xlim(-90, 90)
+    # ax.set_ylim(0, 0.03)
+    # ax.grid(True)
+
+    # plt.show()
+
+    m = min(angles)
+    M = max(angles)
+    axis = [0, len(angles), m, M]
+    print("axis: ", axis)
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(xrange(len(angles)), angles, 'ro')
+    # plt.axis(axis)
+    # plt.show()
+
+    w = len(angles)
+    h = w
+    img_angles = np.zeros((h + 1, w + 1, 1), np.uint8)
+    for i, angle in enumerate(angles):
+        angle = (angle - m) / (M - m) * w
+        img_angles[i, angle] = 255
+    cv2.imshow("img_angles", img_angles)
+
+    img_hough = np.zeros((h + 1, w + 1, 3), np.uint8)
+    minLineLength = w * 0.90
+    # minLineLength = 10
+    maxLineGap = w
+    lines = cv2.HoughLinesP(img_angles, rho=1,
+                            theta=math.pi / 180, threshold=70,
+                            minLineLength=minLineLength, maxLineGap=maxLineGap
+                            )
+    if lines is not None:
+        # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
+        print lines
+        results_rotations = []
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            print "(x1, y1), (x2, y2): ", (x1, y1), (x2, y2)
+            angle = (x1 / (float)(w)) * (M - m) + m
+            result = (angle, abs(y2 - y1))
+            print "=> angle & length_line: ", result
+            cv2.line(img_hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            results_rotations.append(result)
+        cv2.imshow("houghlines3", img_hough)
+        print "results_rotations: ", results_rotations
+        angle_rotation = max(lambda tup: tup[1], results_rotations)[0][0]
+        print "-> angle_rotation: ", angle_rotation
+        dst = rotate_image_2(src2, (360 - angle_rotation))
+        cv2.imshow("image rotated with Hough method", dst)
+
+    while(1):
+        k = cv2.waitKey(1) & 0xFF
+        if k == 27:
+            break

@@ -11,9 +11,9 @@ import sys
 # filename = "Page_09_Pattern_23.png"
 # filename = "Page_09_Pattern_24.png"
 # filename = "Page_09_Pattern_25.png"
-# filename = "Page_09_Pattern_26.png"
+filename = "Page_09_Pattern_26.png"
 #
-filename = "Page_09_Pattern_23_rot90.png"
+# filename = "Page_09_Pattern_23_rot90.png"
 # filename = "Page_09_Pattern_24_rot.png"
 # filename = "Page_09_Pattern_26_rot_crop.png"
 #

@@ -208,6 +208,9 @@ if __name__ == '__main__':
     # http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_photo/py_non_local_means/py_non_local_means.html
     # img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # urls:
+    # - http://docs.opencv.org/2.4/modules/photo/doc/denoising.html
+    # - http://www.ipol.im/pub/art/2011/bcm_nlm/
     templateWindowSize = 7
     searchWindowSize = 21
     gray = cv2.fastNlMeansDenoising(gray, None, 10, templateWindowSize, searchWindowSize)

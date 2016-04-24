@@ -118,6 +118,70 @@ def findContoursMusicSymbols(src, dst, tup_contours, thickness=2, checkConvexivi
     print("nb_contours_without_defects: ", nb_contours_without_defects)
 
 
+def findContoursSymbols(
+    dst,
+    tup_contours,
+    **params
+):
+    # unpack
+    contours, hierarchy = tup_contours
+    # get params
+    thickness = params.setdefault('thickness', 2)
+    checkConvexivity = params.setdefault('checkConvexivity', True)
+    exceptId = params.setdefault('exceptId', -1)
+    use_rand_color = params.setdefault('use_rand_color', True)
+    draw_contours = params.setdefault('draw_contours', False)
+    draw_defects = params.setdefault('draw_defects', False)
+    draw_convex_hull = params.setdefault('draw_convex_hull', False)
+    ch_rand_color = params.setdefault('ch_rand_color', True)
+
+    nb_contours_without_defects = 0
+    print("exceptId: ", exceptId)
+    for i, contour in enumerate(contours):
+        if i is not exceptId:
+            if not(checkConvexivity) or cv2.isContourConvex(contour):
+                color_rand = np.random.randint(255, size=3)
+                if draw_contours:
+                    color_contours = color_rand if use_rand_color else (0, 0, 0)
+                    cv2.drawContours(dst, contours, i, color_contours, thickness)
+
+                # print("i, color_rand, arcLength: ", i, color_rand, cv2.arcLength(contour, True))
+
+                if draw_defects or draw_convex_hull:
+                    pts_hull = cv2.convexHull(contour, returnPoints=True)
+                    if draw_convex_hull:
+                        color_ch = color_rand if ch_rand_color else (0, 0, 0)
+                        cv2.drawContours(dst, [pts_hull], 0, color_ch, 1)
+
+                    if draw_defects:
+                        # url:
+                        # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
+                        hull = cv2.convexHull(contour, returnPoints=False)
+
+                        # url:
+                        # http://docs.opencv.org/2.4/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours
+                        defects = cv2.convexityDefects(contour, hull)
+
+                        if defects is not None:
+                            for i in range(defects.shape[0]):
+                                s, e, f, d = defects[i, 0]
+                                # start = tuple(contour[s][0])
+                                # end = tuple(contour[e][0])
+                                far = tuple(contour[f][0])
+                                # cv2.line(dst, start, end, [0, 255, 0], 1)
+                                # url:
+                                # http://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/point_polygon_test/point_polygon_test.html
+                                true_distance = cv2.pointPolygonTest(pts_hull, far, True)
+                                min_distance = 1.5
+                                color_circle = (color_rand) if (true_distance > min_distance) else (0, 0, 0)
+                                radius_circle = 4 if (true_distance > min_distance) else 2
+                                cv2.circle(dst, far, radius_circle, color_circle, -1)
+                                # print("d: ", d, " - true_distance: ", true_distance)
+                        else:
+                            nb_contours_without_defects += 1
+    # print("nb_contours_without_defects: ", nb_contours_without_defects)
+
+
 def extract_horizontal(src, scale=30):
     """Summary
 
@@ -236,6 +300,8 @@ if __name__ == '__main__':
     params_findContours = {"mode": cv2.RETR_TREE, "method": cv2.CHAIN_APPROX_SIMPLE}
     tup_contours = findContours(gray, **params_findContours)
 
+    img_symbols = np.zeros((h + 2, w + 2, 3), np.uint8)
+
     img_result = np.zeros((h + 2, w + 2), np.uint8)
     #
     idContourSheet = findContourSheet(gray, img_result, tup_contours, -1)
@@ -283,14 +349,26 @@ if __name__ == '__main__':
             color_contour = np.random.randint(255, size=3)
             cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
             cv2.rectangle(img_result, (x, y), (x + width, y + height), color_contour, 2)
+            #
+            cv2.rectangle(img_symbols, (x, y), (x + width, y + height), color_contour, 4)
 
     cv2.imshow('img_result', img_result)
 
     # findContoursMusicSymbols(gray, img, tup_contours, -1, False)
-    #
     # findContourSheet(gray, img, tup_contours, 1)
-    #
     # findContourNotes(gray, img, 1)
+
+    params_findContours = {
+        'thickness': 1,
+        'checkConvexivity': False,
+        'exceptId': idContourSheet,
+        'use_rand_color': True,
+        'draw_contours': True,
+        'draw_defects': False,
+        'draw_convex_hull': True,
+    }
+    findContoursSymbols(img_symbols, tup_contours, **params_findContours)
+    cv2.imshow('img_symbols', img_symbols)
 
     img_2 = img.copy()
 

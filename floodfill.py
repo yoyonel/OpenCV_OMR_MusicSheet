@@ -49,7 +49,7 @@ def findContours(img, **params):
     return contours, hierarchy
 
 
-def findContourSheet(src, dst, tup_contours, thickness=2):
+def findContourSheet(dst, tup_contours, thickness=2):
     # params_findContours = {"mode": cv2.RETR_TREE, "method": cv2.CHAIN_APPROX_SIMPLE}
     # contours, hierarchy = findContours(src, **params_findContours)
     contours, hierarchy = tup_contours
@@ -265,6 +265,7 @@ if __name__ == '__main__':
     if img is None:
         print('Failed to load image file:', fn)
         sys.exit(1)
+    img_warping = img.copy()
 
     ################
     # Denoise image
@@ -304,7 +305,7 @@ if __name__ == '__main__':
 
     img_result = np.zeros((h + 2, w + 2), np.uint8)
     #
-    idContourSheet = findContourSheet(gray, img_result, tup_contours, -1)
+    idContourSheet = findContourSheet(img_result, tup_contours, -1)
     # print("idContourSheet: ", idContourSheet)
     findContoursMusicSymbols(gray, img_result, tup_contours, -1, False, idContourSheet)
     ######
@@ -355,7 +356,7 @@ if __name__ == '__main__':
     cv2.imshow('img_result', img_result)
 
     # findContoursMusicSymbols(gray, img, tup_contours, -1, False)
-    # findContourSheet(gray, img, tup_contours, 1)
+    # findContourSheet(img, tup_contours, 1)
     # findContourNotes(gray, img, 1)
 
     params_findContours = {
@@ -369,6 +370,9 @@ if __name__ == '__main__':
     }
     findContoursSymbols(img_symbols, tup_contours, **params_findContours)
     cv2.imshow('img_symbols', img_symbols)
+    
+    findContourSheet(img_warping, tup_contours)
+    cv2.imshow('img_warping', img_warping)
 
     img_2 = img.copy()
 

@@ -249,11 +249,15 @@ def fillContours_filterByPerimeter(img, contours, **params):
     minPerimeter = params.get("minPerimeter", 0)
     maxPerimeter = params.get("maxPerimeter", 10000)
     color = params.get("color", (255, 255, 255))
+    use_color_rand = params.get("use_color_rand", False)
     #
     for i, contour in enumerate(contours):
         perimeter = cv2.arcLength(contour, True)
         if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
-            cv2.fillPoly(img, pts=contours, color=color)
+            if use_color_rand:
+                color = np.random.randint(255, size=3)
+                print "color_rand: ", color
+            cv2.fillPoly(img, pts=contour, color=color)
 
 
 def detectLine_fromContours_filterByPerimeter(_img, contours, **params):
@@ -431,18 +435,23 @@ height, width = src.shape[:2]
 img_contours = src.copy()
 img_contours_2 = np.zeros((height, width, 1), np.uint8)
 
-params_drawContours = {"minPerimeter": 2000, "useRandomColor": True, "thickness": 1}
-params_fillContours = {"minPerimeter": 2000, "thickness": 1}
+minPerimeter = 100
+params_Contours = {
+    "minPerimeter": minPerimeter,
+    "thickness": 1
+}
+params_drawContours = params_Contours
+params_fillContours = dict(params_Contours, **{'use_color_rand': True})
 #
-drawContours_filterByPerimeter(img_contours, contours, **params_drawContours)
+drawContours_filterByPerimeter(img_contours, contours, **params_Contours)
 # merge de dict python -> url: http://stackoverflow.com/a/39858
-fillContours_filterByPerimeter(img_contours, contours, **dict(params_fillContours, **{'color': (0, 255, 255)}))
+fillContours_filterByPerimeter(img_contours, contours, **params_fillContours)
 #
 drawContours_filterByPerimeter(img_contours_2, contours, **params_drawContours)
 fillContours_filterByPerimeter(img_contours_2, contours, **params_fillContours)
 
 params_detectLines = dict(params_fillContours, **{'color': (255, 0, 0)})
-detectLine_fromContours_filterByPerimeter(img_contours, contours, **params_detectLines)
+# detectLine_fromContours_filterByPerimeter(img_contours, contours, **params_detectLines)
 
 img_contours_mskel, nbIter = morphological_skeleton(img_contours_2.copy())
 showImage(img_contours_mskel, "img_contours_2 + MorphoSkel - nbIter={0}".format(nbIter))

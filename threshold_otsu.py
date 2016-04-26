@@ -27,14 +27,7 @@ def findContours(in_img):
     # tup_results = cv2.findContours(in_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  #
     tup_results = cv2.findContours(in_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_L1)  #
 
-    global contours, hierarchy
-    if len(tup_results) == 3:
-        im2, contours, hierarchy = tup_results
-        # cv2.imshow("image from findContour", im2)
-        # cv2.waitKey(0)
-        # cv2.imwrite("extract_contours_image.png", im2)
-    else:
-        contours, hierarchy = tup_results
+    contours, hierarchy = tup_results[len(tup_results) == 3:]
 
     # url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
     print hierarchy

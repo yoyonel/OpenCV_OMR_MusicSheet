@@ -39,11 +39,8 @@ def findContours(img, **params):
     #
     # url: http://docs.opencv.org/3.1.0/d4/d73/tutorial_py_contours_begin.html#gsc.tab=0
     tup_results = cv2.findContours(img, mode, method)  #
-    global contours, hierarchy
-    if len(tup_results) == 3:
-        im2, contours, hierarchy = tup_results
-    else:
-        contours, hierarchy = tup_results
+    contours, hierarchy = tup_results[len(tup_results) == 3:]
+
     # url: http://opencvpython.blogspot.fr/2013/01/contours-5-hierarchy.html
     # print hierarchy
     return contours, hierarchy

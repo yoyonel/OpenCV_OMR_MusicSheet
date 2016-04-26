@@ -32,7 +32,7 @@ def drawPolygons_matplotlib(list_polygons):
         ymax = max(ymax, max(poly_y))
 
         pts_polygon = np.dstack(np.array(poly_xy))[0]
-        # print pts_polygon
+        # print "pts_polygon: ", pts_polygon
         polygon = Polygon(pts_polygon, True)
         patches.append(polygon)
 

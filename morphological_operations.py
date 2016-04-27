@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
     horizontal = extract_horizontal(bw.copy())
     #
-    showImage(horizontal, "Morpho - extract horizontal")
+    showImage(horizontal, "Morpho - extract horizsobelxyontal")
     cv2.imwrite("extract_horizontal.png", horizontal)
 
     remove_horizontal = bin_img.copy()
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # for each contour found, draw a rectangle around it on original image
     for contour in contours:
         # get rectangle bounding contour
-        [x, y, w, h] = cv2.boundingRect(contour)
+        x, y, w, h = cv2.boundingRect(contour)
         # discard areas that are too large
         # if h > 300 and w > 300:
         #     continue

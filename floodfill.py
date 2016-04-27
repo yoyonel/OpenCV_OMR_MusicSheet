@@ -151,8 +151,9 @@ if __name__ == '__main__':
         'draw_convex_hull': True,
     }
     findContoursSymbols(img_symbols, tup_contours, **params_findContours)
+    findContoursSymbols(img, tup_contours, **params_findContours)
     cv2.imshow('img_symbols', img_symbols)
-    
+
     findContourSheet(img_warping, tup_contours)
     cv2.imshow('img_warping', img_warping)
 

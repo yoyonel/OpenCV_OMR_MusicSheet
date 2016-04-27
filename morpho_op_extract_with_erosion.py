@@ -1,7 +1,7 @@
 from cv2_tools import *
 
 if __name__ == "__main__":
-    filename = "Page_09_Pattern_23.png"
+    filename = "Page_09_Pattern_26.png"
     src = cv2.imread(filename)
 
     src = cv2.fastNlMeansDenoising(src, None, 10, 7, 21)
@@ -46,6 +46,14 @@ if __name__ == "__main__":
     list_ch = [cv2.convexHull(contour, returnPoints=True) for contour in contours_unified]
     cv2.drawContours(src, list_ch, -1, (255, 255, 0), 1)
     cv2.drawContours(bw_erode, list_ch, -1, 255, 2)
+
+    list_bb = [cv2.boundingRect(ch) for ch in list_ch]
+    map(lambda bb: cv2.rectangle(src, (bb[0], bb[1]), (bb[0] + bb[2], bb[1] + bb[3]), (0, 255, 255), 1), list_bb)
+    map(lambda bb: cv2.rectangle(src, (bb[0], bb[1]), (bb[0] + bb[2], bb[1] + bb[3]), (0, 255, 255), 1), list_bb)
+    map(lambda bb: cv2.circle(src, (bb[0] + bb[2] / 2, bb[1] + bb[3] / 2),
+                              min(bb[2], bb[3]) / 2, (255, 0, 255), 1), list_bb)
+    map(lambda bb: cv2.circle(src, (bb[0] + bb[2] / 2, bb[1] + bb[3] / 2),
+                              3, (255, 0, 255), -11), list_bb)
 
     showImage(bw_erode, "Morpho - Erosion")
     showImage(src, "Src + Unified Contours")

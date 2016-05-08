@@ -3,17 +3,19 @@ import numpy as np
 import math
 import sys
 
+from cv2_tools import *
+
 #
 # filename = "Page_09_HD.jpg"
 # filename = "Page_09.jpg"
 #
 # filename = "Page_09_Pattern_23.png"
-# filename = "Page_09_Pattern_24.png"
+filename = "Page_09_Pattern_24.png"
 # filename = "Page_09_Pattern_25.png"
 # filename = "Page_09_Pattern_26.png"
 #
 # filename = "Page_09_Pattern_23_rot90.png"
-filename = "Page_09_Pattern_24_rot.png"
+# filename = "Page_09_Pattern_24_rot.png"
 # filename = "Page_09_Pattern_26_rot_crop.png"
 #
 # filename = "rotate_image.png"
@@ -52,12 +54,13 @@ if __name__ == '__main__':
     ####
 
     #
-    minThreshold = 0  #
-    maxThreshold = 255
-    ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    # minThreshold = 0  #
+    # maxThreshold = 255
+    # ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    edges = cv2.Canny(gray, 150, 700, apertureSize=5)
-    edges = ~edges
+    # edges = cv2.Canny(gray, 150, 700, apertureSize=5)
+    # edges = ~edges
+    edges = gray
     cv2.imshow("window", edges)
     cv2.waitKey(0)
 
@@ -88,7 +91,9 @@ if __name__ == '__main__':
             angle *= (180.0 / math.pi)
 
             angles.append(angle)
-            cv2.line(src, (x1, y1), (x2, y2), (0, 255, 0) if angle > 0 else (255, 0, 0), 2)
+            cv2.line(bw, (x1, y1), (x2, y2), (0, 255, 0) if angle > 0 else (255, 0, 0), 1)
+    cv2.imshow("bw + lines", bw)
+    # waitKey()
 
     # tri aleatoire du tableau des angles
     # on s'assure que les angles ne soient pas triees (comme de par "hasard" :p)
@@ -134,7 +139,25 @@ if __name__ == '__main__':
         dst = rotate_image_2(src2, (360 - angle_rotation))
         cv2.imshow("window", dst)
 
-    while(1):
-        k = cv2.waitKey(1) & 0xFF
-        if k == 27:
-            break
+    ####
+    gray = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
+    gray = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+    ####
+    edges = ~gray
+    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    horizontals = extract_horizontal(bw, 40)
+    contours, hier = findContours(horizontals.copy())
+    # ratio_approx = 0.005 * 0
+    # contours_approx = map(lambda cnt: cv2.approxPolyDP(cnt, ratio_approx * cv2.arcLength(cnt, True), True), contours)
+    img_contours = dst.copy()
+    drawContours_filterByPerimeter(img_contours, contours, **{'minPerimeter': 500})
+    # drawContours_filterByPerimeter(img_contours, contours_approx, **{'minPerimeter': 500})
+
+    list_ch = [cv2.convexHull(contour, returnPoints=True) for contour in contours]
+    cv2.drawContours(img_contours, list_ch, -1, (255, 255, 0), 1)
+
+    cv2.imshow("horizontals", horizontals)
+    cv2.imshow("bw", bw)
+    cv2.imshow("img_contours", img_contours)
+
+    waitKey()

@@ -133,7 +133,7 @@ if __name__ == '__main__':
             cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
             cv2.rectangle(img_result, (x, y), (x + width, y + height), color_contour, 2)
             #
-            cv2.rectangle(img_symbols, (x, y), (x + width, y + height), color_contour, 4)
+            # cv2.rectangle(img_symbols, (x, y), (x + width, y + height), color_contour, 4)
 
     cv2.imshow('img_result', img_result)
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # findContourNotes(gray, img, 1)
 
     params_findContours = {
-        'thickness': 1,
+        'thickness': -1,
         'checkConvexivity': False,
         'exceptId': idContourSheet,
         'use_rand_color': True,

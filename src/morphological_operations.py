@@ -21,17 +21,18 @@ if __name__ == "__main__":
     bin_img = bw.copy()
     showImage(bw, "Black & White - adaptiveThreshold")
 
-    bw_erode = bw.copy()
-    bw_erode = cv2.medianBlur(bw_erode, 5)
-    bw_erode = morpho_erode(bw_erode)
-    bw_erode = morpho_erode(bw_erode)
-    bw_erode = morpho_erode(bw_erode)
-    # bw_erode = morpho_erode(bw_erode)
-    bw_erode = morpho_dilate(bw_erode)
-    bw_erode = morpho_dilate(bw_erode)
-    # bw_erode = morpho_dilate(bw_erode)
-    showImage(bw_erode, "Morpho - Erosion")
-    # cv2.imwrite("bw_after_erosion.png", bw_erode)
+    # bw_erode = bw.copy()
+    # bw_erode = cv2.medianBlur(bw_erode, 5)
+    # # morpho: erode
+    # nb_morpho_erode = 3
+    # for _ in xrange(nb_morpho_erode):
+    #     bw_erode = morpho_erode(bw_erode)
+    # # morpho: dilate
+    # nb_morpho_dilate = 2
+    # for _ in xrange(2):
+    #     bw_erode = morpho_dilate(bw_erode)
+    # showImage(bw_erode, "Morpho - Erosion")
+    # # cv2.imwrite("bw_after_erosion.png", bw_erode)
 
     bw = morpho_dilate(bw)
     #
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 
     showImage(src, "Source")
 
-    while(1):
+    while (1):
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
             break

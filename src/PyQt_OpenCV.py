@@ -32,8 +32,10 @@ class MyDialog(QDialog):
         else:
             app.exit(1)
 
+
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     w = MyDialog()
     w.resize(600, 400)

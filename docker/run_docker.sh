@@ -2,13 +2,18 @@
 
 xhost +
 
-docker run -it \
+DOCKER_IMAGE=omr_opencv3_zsh:python2
+DOCKER_SHELL=bash
+
+docker run \
+	-it --rm \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --volume $(realpath ~):${HOME} \
     --workdir ${PWD} \
-    $USER/screenpulse/fft_scipy_opencv \
-    bash
+    --volume /etc/inputrc:/etc/inputrc \
+    $DOCKER_IMAGE \
+    $DOCKER_SHELL
 
 xhost -

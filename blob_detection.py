@@ -1,25 +1,26 @@
+"""
+"""
 import cv2
 import numpy as np
-import sys
 import os
-
-import cPickle as pickle
-
+import pickle
+import sys
 
 TUP_RANGE_PARAMS_RATIO = (0.0, (0, 1), 1000)
 
 
 def get_attribs(params):
-    return [attr for attr in dir(params) if not callable(attr) and not attr.startswith("__")]
+    return [attr for attr in dir(params) if
+            not callable(attr) and not attr.startswith("__")]
 
 
 def print_params(params):
     attribs = get_attribs(params)
     for attr in attribs:
-        print attr, getattr(params, attr)
+        print(attr, getattr(params, attr))
 
 
-class params_for_pickle:
+class ParamsForPickle:
     """Summary
     """
 
@@ -30,7 +31,8 @@ class params_for_pickle:
 
     def __getstate__(self):
         """Return state values to be pickled."""
-        return (dict(zip(self._attr, [getattr(params, attr) for attr in self._attr])))
+        return dict(
+            zip(self._attr, [getattr(params, attr) for attr in self._attr]))
 
     def __setstate__(self, state):
         """Restore state from the unpickled state values."""
@@ -38,7 +40,7 @@ class params_for_pickle:
 
     def create_params(self):
         params = cv2.SimpleBlobDetector_Params()
-        for (attr, value) in self._dict_pickle.iteritems():
+        for (attr, value) in self._dict_pickle.items():
             setattr(params, attr, value)
         return params
 
@@ -69,28 +71,36 @@ def update_TrackBars_From_Params(params, nameWindow, dict_range_params):
         trackbarname_param_min = 'min' + minmax_param
         trackbarname_param_max = 'max' + minmax_param
 
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, TUP_RANGE_PARAMS_RATIO)
+        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param,
+                                                                   TUP_RANGE_PARAMS_RATIO)
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_min,
-            nameWindow, int(getattr(params, trackbarname_param_min) * param_remap)
+            nameWindow,
+            int(getattr(params, trackbarname_param_min) * param_remap)
         )
 
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_max,
-            nameWindow, int(getattr(params, trackbarname_param_max) * param_remap)
+            nameWindow,
+            int(getattr(params, trackbarname_param_max) * param_remap)
         )
 
     for min_param in list_min_only_params:
         trackbarname_param_min = 'min' + minmax_param
 
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(min_param, TUP_RANGE_PARAMS_RATIO)
+        current_value, (
+        param_min, param_max), param_remap = dict_range_params.get(min_param,
+                                                                   TUP_RANGE_PARAMS_RATIO)
         cv2.setTrackbarPos(
             ('%' if param_remap != 1 else '') + trackbarname_param_min,
-            nameWindow, int(getattr(params, trackbarname_param_min) * param_remap)
+            nameWindow,
+            int(getattr(params, trackbarname_param_min) * param_remap)
         )
 
 
-def createTrackBar(params, nameWindow, callback, dict_range_params={}):
+def createTrackBar(params, nameWindow, callback, dict_range_params=None):
+    if dict_range_params is None:
+        dict_range_params = {}
     list_attr = set(get_attribs(params))
     # filters
     list_filters = set([attr for attr in list_attr if 'filterBy' in attr])
@@ -102,16 +112,18 @@ def createTrackBar(params, nameWindow, callback, dict_range_params={}):
     # min (only) parameters
     list_min_only_params = list_min_params.difference(list_max_params)
 
-    print "list_min_only_params:", list_min_only_params
+    print("list_min_only_params:", list_min_only_params)
 
     for filter in list_filters:
-        cv2.createTrackbar(filter, nameWindow, getattr(params, filter), 1, callback)
+        cv2.createTrackbar(filter, nameWindow, getattr(params, filter), 1,
+                           callback)
 
     for minmax_param in list_minmax_params:
         trackbarname_param_min = 'min' + minmax_param
         trackbarname_param_max = 'max' + minmax_param
 
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, TUP_RANGE_PARAMS_RATIO)
+        current_value, (param_min, param_max), param_remap = \
+            dict_range_params.get(minmax_param, TUP_RANGE_PARAMS_RATIO)
         # REMAP
         current_value *= param_remap
         param_min *= param_remap
@@ -128,7 +140,9 @@ def createTrackBar(params, nameWindow, callback, dict_range_params={}):
     for min_param in list_min_only_params:
         trackbarname_param_min = 'min' + min_param
 
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(min_param, TUP_RANGE_PARAMS_RATIO)
+        current_value, (
+        param_min, param_max), param_remap = dict_range_params.get(min_param,
+                                                                   TUP_RANGE_PARAMS_RATIO)
         # REMAP
         current_value *= param_remap
         param_min *= param_remap
@@ -140,7 +154,8 @@ def createTrackBar(params, nameWindow, callback, dict_range_params={}):
 
 
 def updateParams(params, nameWindow, dict_range_params={}):
-    list_attr = set([attr for attr in dir(params) if not callable(attr) and not attr.startswith("__")])
+    list_attr = set([attr for attr in dir(params) if
+                     not callable(attr) and not attr.startswith("__")])
     # filters
     list_filters = set([attr for attr in list_attr if 'filterBy' in attr])
     # min/max parameters
@@ -156,21 +171,34 @@ def updateParams(params, nameWindow, dict_range_params={}):
         setattr(params, filter, bool(cv2.getTrackbarPos(filter, nameWindow)))
 
     for minmax_param in list_minmax_params:
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(minmax_param, (0.5, (0, 1), 1000))
+        current_value, (
+        param_min, param_max), param_remap = dict_range_params.get(minmax_param,
+                                                                   (0.5, (0, 1),
+                                                                    1000))
         min_param = 'min' + minmax_param
         max_param = 'max' + minmax_param
         trackbarname_param_min = ('%' if param_remap != 1 else '') + min_param
         trackbarname_param_max = ('%' if param_remap != 1 else '') + max_param
-        # print trackbarname_param_min, cv2.getTrackbarPos(trackbarname_param_min, nameWindow)
-        setattr(params, min_param, float(cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(param_remap))
-        setattr(params, max_param, float(cv2.getTrackbarPos(trackbarname_param_max, nameWindow)) / float(param_remap))
+        # print(trackbarname_param_min, cv2.getTrackbarPos(
+        #     trackbarname_param_min, nameWindow))
+        setattr(params, min_param, float(
+            cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(
+            param_remap))
+        setattr(params, max_param, float(
+            cv2.getTrackbarPos(trackbarname_param_max, nameWindow)) / float(
+            param_remap))
 
     for min_only_param in list_min_only_params:
-        current_value, (param_min, param_max), param_remap = dict_range_params.get(min_only_param, (0.5, (0, 1), 1000))
+        current_value, (
+        param_min, param_max), param_remap = dict_range_params.get(
+            min_only_param, (0.5, (0, 1), 1000))
         min_param = 'min' + min_only_param
         trackbarname_param_min = ('%' if param_remap != 1 else '') + min_param
         # print min_param, float(cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(param_remap)
-        setattr(params, min_param, int((cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(param_remap)))
+        setattr(params, min_param, int(
+            (cv2.getTrackbarPos(trackbarname_param_min, nameWindow)) / float(
+                param_remap)))
+
 
 #
 # filename = "Page_09_HD.jpg"
@@ -233,23 +261,25 @@ def nothing():
 def save():
     global params
     pickle_filename = filename[:-4] + 'blob_detection.p'
-    print "Write params dict into: ", pickle_filename
-    pickle.dump(params_for_pickle(params), open(pickle_filename, "wb"))
+    print("Write params dict into: ", pickle_filename)
+    pickle.dump(ParamsForPickle(params), open(pickle_filename, "wb"))
 
 
 def load():
     # global params
     pickle_filename = filename[:-4] + 'blob_detection.p'
-    print "Load params dict from: ", pickle_filename
+    print("Load params dict from: ", pickle_filename)
     # url: https://docs.python.org/2/tutorial/errors.html
     try:
         params_from_pickle = pickle.load(open(pickle_filename, "rb"))
     except IOError:
-        print 'cannot open', pickle_filename
+        print('cannot open', pickle_filename)
     else:
         params = params_from_pickle.create_params()
-        update_TrackBars_From_Params(params, nameWindow_Parameters, dict_ranges_params)
+        update_TrackBars_From_Params(params, nameWindow_Parameters,
+                                     dict_ranges_params)
         onChange(None)
+
 
 dict_key_event = {
     27: exit,
@@ -257,7 +287,7 @@ dict_key_event = {
     ord('l'): load
 }
 
-while(1):
+while (1):
     k = cv2.waitKey(1) & 0xFF
     # url: http://www.tutorialspoint.com/python/dictionary_setdefault.htm
     dict_key_event.setdefault(k, nothing)()
@@ -283,7 +313,8 @@ while(1):
         # the size of the circle corresponds to the size of blob
 
         im_with_keypoints = cv2.drawKeypoints(
-            im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            im, keypoints, np.array([]), (0, 0, 255),
+            cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         # Show blobs
         cv2.imshow(nameWindow_Results, im_with_keypoints)

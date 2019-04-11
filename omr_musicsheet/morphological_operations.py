@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 if __name__ == "__main__":
     filename = "Page_09_Pattern_24.png"
     src = cv2.imread(filename)
 
     src = cv2.fastNlMeansDenoising(src, None, 10, 7, 21)
-    # src = cv2.medianBlur(src, 5)
+    # omr_musicsheet = cv2.medianBlur(omr_musicsheet, 5)
 
     gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 

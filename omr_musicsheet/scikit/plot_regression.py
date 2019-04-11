@@ -17,7 +17,7 @@ print(__doc__)
 
 
 ###############################################################################
-# Generate sample data
+# Generate sample datasets
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import neighbors
@@ -39,7 +39,7 @@ for i, weights in enumerate(['uniform', 'distance']):
     y_ = knn.fit(X, y).predict(T)
 
     plt.subplot(2, 1, i + 1)
-    plt.scatter(X, y, c='k', label='data')
+    plt.scatter(X, y, c='k', label='datasets')
     plt.plot(T, y_, c='g', label='prediction')
     plt.axis('tight')
     plt.legend()

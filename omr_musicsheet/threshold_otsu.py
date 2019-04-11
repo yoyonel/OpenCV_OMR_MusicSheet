@@ -8,7 +8,7 @@ Attributes:
     imgray (TYPE): Description
     maxThreshold (int): Description
     minThreshold (int): Description
-    src (TYPE): Description
+    omr_musicsheet (TYPE): Description
 """
 from random import randint
 
@@ -122,7 +122,7 @@ def main():
 
     img_for_contours = thresh.copy()
     contours, hierarchy = findContours(img_for_contours)
-    # img_contours = src.copy()
+    # img_contours = omr_musicsheet.copy()
     height, width = src.shape[:2]
     img_contours = np.zeros((height, width, 3), np.uint8)
     # draw_contours(img_contours, contours)
@@ -141,7 +141,7 @@ def main():
     cv2.imwrite("thresh_otsu_findContours_{0}.jpg".format(filename[:-4]),
                 img_contours)
 
-    while (1):
+    while True:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
             break

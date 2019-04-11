@@ -111,7 +111,7 @@ class Sketcher:
             self.show()
 
 
-# palette data from matplotlib/_cm.py
+# palette datasets from matplotlib/_cm.py
 _jet_data =   {'red':   ((0., 0, 0), (0.35, 0, 0), (0.66, 1, 1), (0.89,1, 1),
                          (1, 0.5, 0.5)),
                'green': ((0., 0, 0), (0.125,0, 0), (0.375,1, 1), (0.64,1, 1),

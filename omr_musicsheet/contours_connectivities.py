@@ -1,9 +1,6 @@
 # url: http://dsp.stackexchange.com/questions/2564/opencv-c-connect-nearby-contours-based-on-distance-between-them
 
-import cv2
-import numpy as np
-from shapely.geometry import Polygon
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 
 def find_if_close(cnt1, cnt2, dist_min=50):

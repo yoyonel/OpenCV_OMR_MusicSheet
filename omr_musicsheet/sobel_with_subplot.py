@@ -1,7 +1,6 @@
-import cv2
 # import numpy as np
 from matplotlib import pyplot as plt
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 img = cv2.imread('Page_09_Pattern_26.png', 0)
 img = cv2.fastNlMeansDenoising(img, None, 10, 7, 21)

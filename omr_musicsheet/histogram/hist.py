@@ -13,7 +13,7 @@ mu, sigma = 200, 25
 x = mu + sigma * P.randn(10000)
 print("x: ", x)
 
-# the histogram of the data with histtype='step'
+# the histogram of the datasets with histtype='step'
 n, bins, patches = P.hist(x, 50, normed=1, histtype='stepfilled')
 P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
 
@@ -28,11 +28,11 @@ l = P.plot(bins, y, 'k--', linewidth=1.5)
 P.figure()
 
 bins = [100, 125, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 275, 300]
-# the histogram of the data with histtype='step'
+# the histogram of the datasets with histtype='step'
 n, bins, patches = P.hist(x, bins, normed=1, histtype='bar', rwidth=0.8)
 
 #
-# now we create a cumulative histogram of the data
+# now we create a cumulative histogram of the datasets
 #
 P.figure()
 
@@ -43,7 +43,7 @@ y = P.normpdf(bins, mu, sigma).cumsum()
 y /= y[-1]
 l = P.plot(bins, y, 'k--', linewidth=1.5)
 
-# create a second data-set with a smaller standard deviation
+# create a second datasets-set with a smaller standard deviation
 sigma2 = 15.
 x = mu + sigma2 * P.randn(10000)
 
@@ -64,13 +64,13 @@ P.ylim(0, 1.05)
 
 
 #
-# histogram has the ability to plot multiple data in parallel ...
+# histogram has the ability to plot multiple datasets in parallel ...
 # Note the new color kwarg, used to override the default, which
 # uses the line color cycle.
 #
 P.figure()
 
-# create a new data-set
+# create a new datasets-set
 x = mu + sigma * P.randn(1000, 3)
 
 n, bins, patches = P.hist(x, 10, normed=1, histtype='bar',
@@ -79,7 +79,7 @@ n, bins, patches = P.hist(x, 10, normed=1, histtype='bar',
 P.legend()
 
 #
-# ... or we can stack the data
+# ... or we can stack the datasets
 #
 P.figure()
 
@@ -98,7 +98,7 @@ n, bins, patches = P.hist(x, 10, histtype='step', stacked=True, fill=True)
 P.show()
 
 #
-# finally: make a multiple-histogram of data-sets with different length
+# finally: make a multiple-histogram of datasets-sets with different length
 #
 x0 = mu + sigma * P.randn(10000)
 x1 = mu + sigma * P.randn(7000)

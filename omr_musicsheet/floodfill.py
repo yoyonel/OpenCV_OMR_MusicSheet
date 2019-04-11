@@ -18,10 +18,8 @@ Keys:
 # Python 2/3 compatibility
 from __future__ import print_function
 
-import numpy as np
-import cv2
 import ast
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 
 ########################################################
@@ -30,7 +28,7 @@ if __name__ == '__main__':
     try:
         fn = sys.argv[1]
     except:
-        fn = '../data/fruits.jpg'
+        fn = '../datasets/fruits.jpg'
     try:
         # url: http://stackoverflow.com/questions/715417/converting-from-a-string-to-boolean-in-python
         fixed_range = ast.literal_eval(sys.argv[2])

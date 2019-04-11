@@ -18,13 +18,13 @@ updates 1 pixel at a time.
 
 import numpy as np
 import matplotlib.pyplot as plt
-# from skimage import data
+# from skimage import datasets
 from skimage.filter.inpaint_texture import inpaint_efros
 import cv2
 
 filename = "../Page_09_Pattern_24_rot.png"
 image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-# image = data.camera()[300:500, 350:550]
+# image = datasets.camera()[300:500, 350:550]
 
 mask = np.zeros_like(image, dtype=np.uint8)
 

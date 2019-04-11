@@ -1,4 +1,4 @@
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 if __name__ == "__main__":
     filename = "Page_09_Pattern_26.png"

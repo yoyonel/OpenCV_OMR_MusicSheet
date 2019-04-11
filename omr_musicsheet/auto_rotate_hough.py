@@ -1,9 +1,7 @@
-import cv2
-import numpy as np
 import math
 import sys
 
-from cv2_tools import *
+from omr_musicsheet.cv2_tools import *
 
 #
 # filename = "Page_09_HD.jpg"

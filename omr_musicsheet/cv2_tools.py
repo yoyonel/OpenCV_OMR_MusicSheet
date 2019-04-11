@@ -58,7 +58,7 @@ def extract_horizontal(src, scale=30):
         TYPE: Description
     """
     # url: http://stackoverflow.com/questions/16533078/clone-an-image-in-cv2-python
-    # horizontal = src.copy()
+    # horizontal = omr_musicsheet.copy()
     horizontal = src
 
     # Specify size on horizontal axis
@@ -352,7 +352,7 @@ def binarize_img(img, **params):
 
 def findContourSheet(dst, tup_contours, thickness=2):
     # params_findContours = {"mode": cv2.RETR_TREE, "method": cv2.CHAIN_APPROX_SIMPLE}
-    # contours, hierarchy = findContours(src, **params_findContours)
+    # contours, hierarchy = findContours(omr_musicsheet, **params_findContours)
     contours, hierarchy = tup_contours
 
     # print("hierarchy: ", hierarchy)
@@ -378,7 +378,7 @@ def findContourSheet(dst, tup_contours, thickness=2):
 
 def findContoursMusicSymbols(src, dst, tup_contours, thickness=2, checkConvexivity=True, exceptId=-1):
     # params_findContours = {"mode": cv2.RETR_CCOMP, "method": cv2.CHAIN_APPROX_SIMPLE}
-    # contours, hierarchy = findContours(src, **params_findContours)
+    # contours, hierarchy = findContours(omr_musicsheet, **params_findContours)
     contours, hierarchy = tup_contours
 
     nb_contours_without_defects = 0

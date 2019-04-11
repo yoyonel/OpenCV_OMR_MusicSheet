@@ -93,6 +93,8 @@ def bbox_center(bb):
 
 
 def cluster_bbox(bbox):
+    # https://stackoverflow.com/questions/18364026/clustering-values-by-their-proximity-in-python-machine-learning
+
     # x = [1, 1, 5, 6, 1, 5, 10, 22, 23, 23, 50, 51, 51, 52, 100, 112, 130, 500,
     #      512, 600, 12000, 12230]
 
@@ -156,6 +158,8 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
 
     im_result = im.copy()
 
+    # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_histograms/py_histogram_begins/py_histogram_begins.html#histograms-getting-started
+    # https://docs.opencv.org/3.1.0/d1/db7/tutorial_py_histogram_begins.html
     # hist = cv2.calcHist(im, [0], None, [256], [0, 256])
     # bg_color = im[0]
     # bg_color = [113, 105, 76, 0]
@@ -204,9 +208,10 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
 
 def main():
     # Mask created with GIMP: image>mode>rgb tools>color_tools>colorize
+    # https://docs.gimp.org/2.10/fr/gimp-tool-threshold.html
 
     compute_aabbox_from_img_and_mask("dataœ/mercedesspritesheets.png")
-    # compute_aabbox_from_img_and_mask("data/trump_run.png")
+    # compute_aabbox_from_img_and_mask("datasets/trump_run.png")
 
     while True:
         k = cv2.waitKey(1) & 0xFF

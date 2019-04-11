@@ -20,8 +20,8 @@ Usage:
      - synth:<params> for procedural video
 
 Synth examples:
-    synth:bg=../data/lena.jpg:noise=0.1
-    synth:class=chess:bg=../data/lena.jpg:noise=0.1:size=640x480
+    synth:bg=../datasets/lena.jpg:noise=0.1
+    synth:class=chess:bg=../datasets/lena.jpg:noise=0.1:size=640x480
 
 Keys:
     ESC    - exit
@@ -133,8 +133,8 @@ classes = dict(chess=Chess)
 
 presets = dict(
     empty = 'synth:',
-    lena = 'synth:bg=../data/lena.jpg:noise=0.1',
-    chess = 'synth:class=chess:bg=../data/lena.jpg:noise=0.1:size=640x480'
+    lena = 'synth:bg=../datasets/lena.jpg:noise=0.1',
+    chess = 'synth:class=chess:bg=../datasets/lena.jpg:noise=0.1:size=640x480'
 )
 
 

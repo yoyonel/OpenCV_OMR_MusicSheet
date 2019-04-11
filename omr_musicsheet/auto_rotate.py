@@ -248,7 +248,7 @@ if __name__ == '__main__':
     cv2.imwrite("houghlines3.png", src)
     cv2.waitKey(0)
 
-    # dst = rotate(src, angle_for_max)
+    # dst = rotate(omr_musicsheet, angle_for_max)
     # dst = rotate_image(src2, angle_for_max)
     dst = rotate_image_2(src2, (360 - angle_for_max))
     # dst = rotate_image_2(src2, angle_for_max)
@@ -259,7 +259,7 @@ if __name__ == '__main__':
 
     # mu, sigma = 200, 25
     # x = angles
-    # the histogram of the data with histtype='step'
+    # the histogram of the datasets with histtype='step'
     # n, bins, patches = P.hist(x, 5000, normed=1, histtype='stepfilled')
     # P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
     # P.show()
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     # ax = fig.add_subplot(111)
     # mu, sigma = 100, 15
     # x = angles
-    # the histogram of the data
+    # the histogram of the datasets
     # n, bins, patches = ax.hist(x, 50, normed=1, facecolor='green', alpha=0.75)
 
     # hist uses np.histogram under the hood to create 'n' and 'bins'.

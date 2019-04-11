@@ -1,18 +1,52 @@
 """
 """
+from collections import defaultdict
+from dataclasses import dataclass, field
+
 import cv2
 import logging
 import numpy as np
 from pathlib import Path
 import pprint
 from random import randint
-from typing import Tuple, List
-from sklearn.cluster import MeanShift, estimate_bandwidth
+from typing import Tuple, List, Iterable
+from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
 
 from omr_musicsheet.tools.logger import init_logger
 from omr_musicsheet.datasets import get_module_path_datasets
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Point2D:
+    x: int
+    y: int
+
+    def __iter__(self):
+        return iter((self.x, self.y))
+
+
+@dataclass
+class AABBox:
+    top_left: Point2D
+    bottom_right: Point2D
+
+    perimeter: int = field(init=False)
+
+    def compute_perimeter(self) -> int:
+        self.perimeter = (abs(self.bottom_right.x - self.top_left.x) +
+                          abs(self.bottom_right.y - self.top_left.y)) * 2
+        return self.perimeter
+
+    def compute_center(self) -> Point2D:
+        return Point2D(
+            (self.bottom_right.x + self.top_left.x) // 2,
+            (self.bottom_right.y + self.top_left.y) // 2,
+        )
+
+    def __iter__(self):
+        return self.top_left, self.bottom_right
 
 
 def find_contours(in_img):
@@ -56,41 +90,41 @@ def draw_contours(out_img, contours, thickness=3):
                          color=random_color(), thickness=thickness)
 
 
-def find_aabbox_from_contours(contours, offset: int = 0):
+def find_aabbox_from_contours(contours, offset: int = 0) -> Iterable[AABBox]:
     for contour in contours:
         bbox = cv2.boundingRect(contour)
-        top_left = bbox[0] - offset, bbox[1] - offset
-        bottom_right = (
+        top_left = Point2D(bbox[0] - offset, bbox[1] - offset)
+        bottom_right = Point2D(
             bbox[0] + bbox[2] - 1 + offset,
             bbox[1] + bbox[3] - 1 + offset
         )
-        yield top_left, bottom_right
+        yield AABBox(top_left, bottom_right)
 
 
 def draw_aabbox(
         out_img,
-        bbox,
+        list_bbox,
         thickness=3,
         color=None,
 ):
     """
 
     :param out_img:
-    :param bbox:
+    :param list_bbox:
     :param thickness:
     :param color:
     """
-    for top_left, bottom_right in bbox:
-        cv2.rectangle(out_img, top_left, bottom_right,
+    for bbox in list_bbox:
+        cv2.rectangle(out_img, tuple(bbox.top_left), tuple(bbox.bottom_right),
                       color if color else random_color(), thickness)
 
 
-def bbox_perimeter(bb):
-    return (abs(bb[1][0] - bb[0][0]) + abs(bb[1][1] - bb[0][1])) * 2
+# def bbox_perimeter(bb):
+#     return (abs(bb[1][0] - bb[0][0]) + abs(bb[1][1] - bb[0][1])) * 2
 
 
-def bbox_center(bb):
-    return (bb[1][0] + bb[0][0]) * 0.5, (bb[1][1] + bb[0][1]) * 0.5
+# def bbox_center(bb):
+#     return (bb[1][0] + bb[0][0]) * 0.5, (bb[1][1] + bb[0][1]) * 0.5
 
 
 def cluster_bbox(bbox):
@@ -118,8 +152,8 @@ def cluster_bbox(bbox):
         print("cluster {0}: {1}".format(k, set(X[my_members, 0])))
 
 
-def hline_intersect_bbox(y: float, bb) -> bool:
-    return bb[0][1] <= y <= bb[1][1]
+def hline_intersect_bbox(y: float, bb: AABBox) -> bool:
+    return bb.top_left.y <= y <= bb.bottom_right.y
 
 
 def cluster_bbox_with_rectilines(bbox):
@@ -130,10 +164,10 @@ def cluster_bbox_with_rectilines(bbox):
         bb = next(it_bbox)
         while True:
             nb_elements_in_cluster = 1
-            bb_center = bbox_center(bb)
+            bb_center = bb.compute_center()
 
             next_bb = next(it_bbox)
-            while hline_intersect_bbox(bb_center[1], next_bb):
+            while hline_intersect_bbox(bb_center.y, next_bb):
                 nb_elements_in_cluster += 1
                 next_bb = next(it_bbox)
 
@@ -147,8 +181,20 @@ def cluster_bbox_with_rectilines(bbox):
     return clusters
 
 
-def compute_aabbox_from_img_and_mask(img_fn: str):
-    img_path = Path(img_fn)
+@dataclass
+class AABBoxParams:
+    img_fn: str
+    filter_min_perimeter: int
+    filter_max_perimeter: int
+
+    path_img: Path = field(init=False)
+
+    def __post_init__(self):
+        self.path_img = Path(get_module_path_datasets()) / self.img_fn
+
+
+def compute_aabbox_from_img_and_mask(params: AABBoxParams):
+    img_path = Path(params.path_img)
     if not img_path.exists():
         raise IOError(f"{img_path} does'nt exist !")
 
@@ -189,14 +235,32 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     #
     bbox = list(find_aabbox_from_contours(contours, offset=2))
     # filter bbox list
-    min_perimeter = 15 * 4
-    max_perimeter = 80 * 4
+
+    # def cluster_on_bbox_perimeters(list_bbox, n_clusters=3):
+    #     X = np.array(list(zip(
+    #         [
+    #             bbox.compute_perimeter()
+    #             for bbox in list_bbox
+    #         ],
+    #         np.zeros(len(list_bbox)))
+    #     ))
+    #     kmeans = KMeans(n_clusters=n_clusters).fit(X)
+    #     labels = kmeans.predict(X)
+    #     return labels
+    # labels = cluster_on_bbox_perimeters(bbox)
+    # labels_bbox = [[] for _ in range(3)]
+    # for label, bb in zip(labels, bbox):
+    #     labels_bbox[label].append(bb)
+
     bbox = list(filter(
-        lambda bb: min_perimeter <= bbox_perimeter(bb) <= max_perimeter,
+        lambda bb: params.filter_min_perimeter <= bb.compute_perimeter() <=
+                   params.filter_max_perimeter,
         bbox
     ))
-    bbox = sorted(bbox, key=lambda bb: (bb[0][1], bb[0][0]))
+    bbox = sorted(bbox, key=lambda bb: (bb.top_left.y, bb.top_left.x))
     logger.info(f"bbox =\n{pprint.pformat(bbox)}")
+    logger.info(f"perimeter: min={min(bbox, key=lambda bb: bb.perimeter)}")
+    logger.info(f"perimeter: max={max(bbox, key=lambda bb: bb.perimeter)}")
     draw_aabbox(im_result, bbox, thickness=1, color=(0, 255, 0))
     draw_aabbox(im, bbox, thickness=1, color=(255, 0, 0))
     draw_aabbox(im_mss, bbox, thickness=1, color=(255, 0, 0))
@@ -205,16 +269,18 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     cv2.imshow("img_for_contours", img_for_contours)
     cv2.imshow('Sprite Sheets - Mask', im)
     cv2.imshow('Sprite Sheets - Results', im_result)
-    cv2.imshow(f'Sprite Sheets on {img_fn}', im_mss)
+    cv2.imshow(f'Sprite Sheets on {params.img_fn}', im_mss)
 
     # cluster_bbox(bbox)
-    print(cluster_bbox_with_rectilines(bbox))
+    logger.info(cluster_bbox_with_rectilines(bbox))
 
 
-def compute_and_render(list_fn_imgs: List[str], wait_for_escape=True):
-    for fn_img in list_fn_imgs:
-        compute_aabbox_from_img_and_mask(
-            str(Path(get_module_path_datasets()) / fn_img))
+def compute_and_render(
+        list_params_aabbox_searching: List[AABBoxParams],
+        wait_for_escape: bool = True
+):
+    for params_aabbox_searching in list_params_aabbox_searching:
+        compute_aabbox_from_img_and_mask(params_aabbox_searching)
     #
     while True and wait_for_escape:
         k = cv2.waitKey(1) & 0xFF
@@ -224,9 +290,9 @@ def compute_and_render(list_fn_imgs: List[str], wait_for_escape=True):
 
 def main():
     compute_and_render([
-        # 'mercedesspritesheets.png',
-        # 'trump_run.png',
-        'volt_sprite_sheet_by_kwelfury-d5hx008.png'
+        AABBoxParams('mercedesspritesheets.png', 132, 236),
+        AABBoxParams('trump_run.png', 230, 290),
+        AABBoxParams('volt_sprite_sheet_by_kwelfury-d5hx008.png', 632, 676)
     ])
 
 

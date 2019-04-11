@@ -14,10 +14,19 @@ be inpainted and all other patches in the image which do not contain any
 boundary region and no unknown or masked region. This implementation
 updates 1 pixel at a time.
 
+
+Un peu technique l'install.
+Ne passe pas avec un interpreteur python >= 3.7
+car la version spécifique scikit-image
+du dépot: https://github.com/chintak/scikit-image
+nécessite une version (ancienne) de cython==0.17 qui ne semble pas compatible
+avec python 3.7.
+Faudrait tenter un autre interpréteur, on cherchait une version compatible
+de Cython qui peut etre avec py3.7 et faire tourner la lib scikit-image ...
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 # from skimage import datasets
 from skimage.filter.inpaint_texture import inpaint_efros
 import cv2

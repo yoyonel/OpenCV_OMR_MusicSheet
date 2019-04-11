@@ -12,13 +12,13 @@ Usage:
 '''
 
 # Python 2/3 compatibility
-from __future__ import print_function
+# from __future__ import print_function
 
 import cv2
 import numpy as np
 
 # relative module
-import video
+import omr_musicsheet.LineSegmentDetector.video as video
 
 # built-in module
 import sys
@@ -32,12 +32,15 @@ def inside(r, q):
 
 def draw_detections(img, rects, thickness=1):
     for x, y, w, h in rects:
-        # the HOG detector returns slightly larger rectangles than the real objects.
+        # the HOG detector returns slightly larger rectangles
+        # than the real objects.
         # so we slightly shrink the rectangles to get a nicer output.
         pad_w, pad_h = int(0.15 * w), int(0.05 * h)
-        cv2.rectangle(img, (x + pad_w, y + pad_h), (x + w - pad_w, y + h - pad_h), (0, 255, 0), thickness)
+        cv2.rectangle(img, (x + pad_w, y + pad_h),
+                      (x + w - pad_w, y + h - pad_h), (0, 255, 0), thickness)
 
-if __name__ == '__main__':
+
+def main():
     print(__doc__)
 
     try:
@@ -69,7 +72,8 @@ if __name__ == '__main__':
         edge = blank_image
         # url: http://docs.opencv.org/3.0-beta/modules/imgproc/doc/feature_detection.html
         # on detecte les lignes dans l'image des gris de la webcam
-        # on applique un filtre blur median dessus avant (pour stabiliser l'image et les discontinuites)
+        # on applique un filtre blur median dessus avant
+        # (pour stabiliser l'image et les discontinuites)
         tup_results = ls.detect(cv2.medianBlur(gray, 5))
         # extract lines from result
         lines = tup_results[0]
@@ -77,8 +81,10 @@ if __name__ == '__main__':
         if lines is not None:
             print("lines", len(lines))
             # On les affiche
-            # Ps: edge est l'image de destination qui est une image RGB (car blank_image est RGB)
-            # Il faut une image RGB, car drawSegment dessine dans une RGB (lignes rouges)
+            # Ps: edge est l'image de destination
+            # qui est une image RGB (car blank_image est RGB)
+            # Il faut une image RGB,
+            # car drawSegment dessine dans une RGB (lignes rouges)
             ls.drawSegments(edge, lines)
 
             # extract red component of edge image
@@ -96,13 +102,15 @@ if __name__ == '__main__':
             # Utilisation d'edge comme un masque
             # Fusion d'edge et visu avec priorite edge
             # On remplace les pixels actifs (anciennement rouge) d'edge
-            # par des pixels vers dans vis => les lignes de detections seront vertes
+            # par des pixels vers dans vis
+            # => les lignes de detections seront vertes
             vis[edge != 0] = (0, 255, 0)
 
             cv2.imshow('edge', vis)
 
         #
-        found, w = hog.detectMultiScale(img, winStride=(8, 8), padding=(32, 32), scale=1.05)
+        found, w = hog.detectMultiScale(img, winStride=(8, 8), padding=(32, 32),
+                                        scale=1.05)
         print(found)
         found_filtered = []
         for ri, r in enumerate(found):
@@ -120,3 +128,7 @@ if __name__ == '__main__':
         if ch == 27:
             break
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()

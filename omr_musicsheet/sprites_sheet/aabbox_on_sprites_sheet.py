@@ -1,15 +1,16 @@
 """
 """
-from pathlib import Path
-
 import cv2
 import logging
 import numpy as np
+from pathlib import Path
 import pprint
 from random import randint
 from typing import Tuple
 from sklearn.cluster import MeanShift, estimate_bandwidth
 
+from omr_musicsheet.tools.logger import init_logger
+from omr_musicsheet.datasets import get_module_path_datasets
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,7 @@ def cluster_bbox(bbox):
         list(zip([bb[0][1] for bb in bbox], np.zeros(len(bbox)))),
         dtype=np.int
     )
-    bandwidth = estimate_bandwidth(X, quantile=1.0/15.0)
+    bandwidth = estimate_bandwidth(X, quantile=1.0 / 15.0)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(X)
     labels = ms.labels_
@@ -136,7 +137,7 @@ def cluster_bbox_with_rectilines(bbox):
                 nb_elements_in_cluster += 1
                 next_bb = next(it_bbox)
 
-            clusters += [id_cluster]*nb_elements_in_cluster
+            clusters += [id_cluster] * nb_elements_in_cluster
             id_cluster += 1
 
             bb = next_bb
@@ -148,10 +149,12 @@ def cluster_bbox_with_rectilines(bbox):
 
 def compute_aabbox_from_img_and_mask(img_fn: str):
     img_path = Path(img_fn)
-    assert img_path.exists()
+    if not img_path.exists():
+        raise IOError(f"{img_path} does'nt exist !")
 
     img_mask_path = img_path.with_name(f"{img_path.stem}_mask{img_path.suffix}")
-    assert img_mask_path.exists()
+    if not img_mask_path.exists():
+        raise IOError(f"{img_mask_path} does'nt exist !")
 
     im = cv2.imread(str(img_mask_path))
     im_mss = cv2.imread(str(img_path))
@@ -180,7 +183,6 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     #
     contours, hierarchy = find_contours(img_for_contours)
     draw_contours(im_result, contours, thickness=2)
-    cv2.imshow("img_for_contours", img_for_contours)
 
     #
     bbox = list(find_aabbox_from_contours(contours, offset=2))
@@ -198,31 +200,31 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     draw_aabbox(im_mss, bbox, thickness=1, color=(255, 0, 0))
 
     #
-    cv2.imshow('Sprite Sheets - Mask', im)
-    cv2.imshow('Sprite Sheets - Results', im_result)
-    cv2.imshow('Sprite Sheets', im_mss)
+    # cv2.imshow("img_for_contours", img_for_contours)
+    # cv2.imshow('Sprite Sheets - Mask', im)
+    # cv2.imshow('Sprite Sheets - Results', im_result)
+    cv2.imshow(f'Sprite Sheets on {img_fn}', im_mss)
 
     # cluster_bbox(bbox)
     print(cluster_bbox_with_rectilines(bbox))
 
 
-def main():
+def compute_and_render(fn_img: str, wait_for_escape=True):
     # Mask created with GIMP: image>mode>rgb tools>color_tools>colorize
     # https://docs.gimp.org/2.10/fr/gimp-tool-threshold.html
-
-    compute_aabbox_from_img_and_mask("dataœ/mercedesspritesheets.png")
-    # compute_aabbox_from_img_and_mask("datasets/trump_run.png")
-
-    while True:
+    fn = str(Path(get_module_path_datasets()) / fn_img)
+    compute_aabbox_from_img_and_mask(fn)
+    while True and wait_for_escape:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
             break
 
 
-if __name__ == '__main__':
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
+def main():
+    compute_and_render('mercedesspritesheets.png', wait_for_escape=False)
+    compute_and_render('trump_run.png')
 
+
+if __name__ == '__main__':
+    init_logger(logger)
     main()

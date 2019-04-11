@@ -56,7 +56,8 @@ EXTRA_INFO = dict(
                  'Topic :: Scientific/Engineering'],
     entry_points={
         'console_scripts': [
-            'contour_00=omr_musicsheet.contours.contour_00:main'
+            'contour_00=omr_musicsheet.contours.contour_00:main',
+            'sprites_sheet=omr_musicsheet.sprites_sheet.aabbox_on_sprites_sheet:main'
         ]
     }
 )

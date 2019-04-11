@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 import pprint
 from random import randint
-from typing import Tuple
+from typing import Tuple, List
 from sklearn.cluster import MeanShift, estimate_bandwidth
 
 from omr_musicsheet.tools.logger import init_logger
@@ -152,6 +152,8 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     if not img_path.exists():
         raise IOError(f"{img_path} does'nt exist !")
 
+    # Mask created with GIMP: image>mode>rgb tools>color_tools>colorize
+    # https://docs.gimp.org/2.10/fr/gimp-tool-threshold.html
     img_mask_path = img_path.with_name(f"{img_path.stem}_mask{img_path.suffix}")
     if not img_mask_path.exists():
         raise IOError(f"{img_mask_path} does'nt exist !")
@@ -200,20 +202,20 @@ def compute_aabbox_from_img_and_mask(img_fn: str):
     draw_aabbox(im_mss, bbox, thickness=1, color=(255, 0, 0))
 
     #
-    # cv2.imshow("img_for_contours", img_for_contours)
-    # cv2.imshow('Sprite Sheets - Mask', im)
-    # cv2.imshow('Sprite Sheets - Results', im_result)
+    cv2.imshow("img_for_contours", img_for_contours)
+    cv2.imshow('Sprite Sheets - Mask', im)
+    cv2.imshow('Sprite Sheets - Results', im_result)
     cv2.imshow(f'Sprite Sheets on {img_fn}', im_mss)
 
     # cluster_bbox(bbox)
     print(cluster_bbox_with_rectilines(bbox))
 
 
-def compute_and_render(fn_img: str, wait_for_escape=True):
-    # Mask created with GIMP: image>mode>rgb tools>color_tools>colorize
-    # https://docs.gimp.org/2.10/fr/gimp-tool-threshold.html
-    fn = str(Path(get_module_path_datasets()) / fn_img)
-    compute_aabbox_from_img_and_mask(fn)
+def compute_and_render(list_fn_imgs: List[str], wait_for_escape=True):
+    for fn_img in list_fn_imgs:
+        compute_aabbox_from_img_and_mask(
+            str(Path(get_module_path_datasets()) / fn_img))
+    #
     while True and wait_for_escape:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
@@ -221,8 +223,11 @@ def compute_and_render(fn_img: str, wait_for_escape=True):
 
 
 def main():
-    compute_and_render('mercedesspritesheets.png', wait_for_escape=False)
-    compute_and_render('trump_run.png')
+    compute_and_render([
+        # 'mercedesspritesheets.png',
+        # 'trump_run.png',
+        'volt_sprite_sheet_by_kwelfury-d5hx008.png'
+    ])
 
 
 if __name__ == '__main__':

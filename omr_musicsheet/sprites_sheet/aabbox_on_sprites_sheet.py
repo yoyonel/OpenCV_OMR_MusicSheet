@@ -1,6 +1,6 @@
 """
 """
-from collections import defaultdict
+# from collections import defaultdict
 from dataclasses import dataclass, field
 
 import cv2
@@ -10,7 +10,10 @@ from pathlib import Path
 import pprint
 from random import randint
 from typing import Tuple, List, Iterable
-from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
+from sklearn.cluster import (
+    MeanShift, estimate_bandwidth,
+    # KMeans
+)
 
 from omr_musicsheet.tools.logger import init_logger
 from omr_musicsheet.datasets import get_module_path_datasets
@@ -26,6 +29,23 @@ class Point2D:
     def __iter__(self):
         return iter((self.x, self.y))
 
+    def __add__(self, other):
+        return Point2D(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Point2D(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, other):
+        return Point2D(self.x * other, self.y * other)
+
+    def __abs__(self):
+        return Point2D(abs(self.x), abs(self.y))
+
+    def dot(self, other) -> int:
+        return self.x * other.x + self.y * other.y
+
+    __rmul__ = __mul__
+
 
 @dataclass
 class AABBox:
@@ -33,17 +53,13 @@ class AABBox:
     bottom_right: Point2D
 
     perimeter: int = field(init=False)
+    center: Point2D = field(init=False)
 
-    def compute_perimeter(self) -> int:
-        self.perimeter = (abs(self.bottom_right.x - self.top_left.x) +
-                          abs(self.bottom_right.y - self.top_left.y)) * 2
-        return self.perimeter
+    def __post_init__(self):
+        self.perimeter = abs(self.bottom_right -
+                             self.top_left).dot(Point2D(1, 1) * 2)
 
-    def compute_center(self) -> Point2D:
-        return Point2D(
-            (self.bottom_right.x + self.top_left.x) // 2,
-            (self.bottom_right.y + self.top_left.y) // 2,
-        )
+        self.center = (self.top_left + self.bottom_right) * 0.5
 
     def __iter__(self):
         return self.top_left, self.bottom_right
@@ -119,14 +135,6 @@ def draw_aabbox(
                       color if color else random_color(), thickness)
 
 
-# def bbox_perimeter(bb):
-#     return (abs(bb[1][0] - bb[0][0]) + abs(bb[1][1] - bb[0][1])) * 2
-
-
-# def bbox_center(bb):
-#     return (bb[1][0] + bb[0][0]) * 0.5, (bb[1][1] + bb[0][1]) * 0.5
-
-
 def cluster_bbox(bbox):
     # https://stackoverflow.com/questions/18364026/clustering-values-by-their-proximity-in-python-machine-learning
 
@@ -164,7 +172,7 @@ def cluster_bbox_with_rectilines(bbox):
         bb = next(it_bbox)
         while True:
             nb_elements_in_cluster = 1
-            bb_center = bb.compute_center()
+            bb_center = bb.center
 
             next_bb = next(it_bbox)
             while hline_intersect_bbox(bb_center.y, next_bb):
@@ -253,7 +261,7 @@ def compute_aabbox_from_img_and_mask(params: AABBoxParams):
     #     labels_bbox[label].append(bb)
 
     bbox = list(filter(
-        lambda bb: params.filter_min_perimeter <= bb.compute_perimeter() <=
+        lambda bb: params.filter_min_perimeter <= bb.perimeter <=
                    params.filter_max_perimeter,
         bbox
     ))

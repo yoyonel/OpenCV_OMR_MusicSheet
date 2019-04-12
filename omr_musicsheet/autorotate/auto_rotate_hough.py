@@ -2,21 +2,7 @@ import math
 import sys
 
 from omr_musicsheet.cv2_tools import *
-
-#
-# filename = "Page_09_HD.jpg"
-# filename = "Page_09.jpg"
-#
-# filename = "Page_09_Pattern_23.png"
-filename = "Page_09_Pattern_24.png"
-# filename = "Page_09_Pattern_25.png"
-# filename = "Page_09_Pattern_26.png"
-#
-# filename = "Page_09_Pattern_23_rot90.png"
-# filename = "Page_09_Pattern_24_rot.png"
-# filename = "Page_09_Pattern_26_rot_crop.png"
-#
-# filename = "rotate_image.png"
+from omr_musicsheet.datasets import get_image_path
 
 
 def rotate_image_2(mat, angle):
@@ -34,12 +20,31 @@ def rotate_image_2(mat, angle):
     rotation_mat[0, 2] += ((bound_w / 2) - image_center[0])
     rotation_mat[1, 2] += ((bound_h / 2) - image_center[1])
 
-    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h), borderValue=(255, 255, 255))
+    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h),
+                                 borderValue=(255, 255, 255))
     return rotated_mat
 
 
-if __name__ == '__main__':
+def main():
+    #
+    # filename = "Page_09_HD.jpg"
+    # filename = "Page_09.jpg"
+    #
+    # filename = "Page_09_Pattern_23.png"
+    filename = "Page_09_Pattern_24.png"
+    # filename = "Page_09_Pattern_25.png"
+    # filename = "Page_09_Pattern_26.png"
+    #
+    # filename = "Page_09_Pattern_23_rot90.png"
+    # filename = "Page_09_Pattern_24_rot.png"
+    # filename = "Page_09_Pattern_26_rot_crop.png"
+    #
+    # filename = "rotate_image.png"
+
+    filename = str(get_image_path(filename))
+
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("window", 512, 512)
 
     src = cv2.imread(filename)
     src2 = src.copy()
@@ -60,11 +65,11 @@ if __name__ == '__main__':
     # edges = ~edges
     edges = gray
     cv2.imshow("window", edges)
-    cv2.waitKey(0)
 
-    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                               cv2.THRESH_BINARY, 15, -2)
 
-    cv2.imwrite("bw.png", bw)
+    # cv2.imwrite("bw.png", bw)
     #############################
 
     minLineLength = 0
@@ -89,8 +94,12 @@ if __name__ == '__main__':
             angle *= (180.0 / math.pi)
 
             angles.append(angle)
-            cv2.line(bw, (x1, y1), (x2, y2), (0, 255, 0) if angle > 0 else (255, 0, 0), 1)
+            cv2.line(bw, (x1, y1), (x2, y2),
+                     (0, 255, 0) if angle > 0 else (255, 0, 0), 1)
+    cv2.namedWindow("bw + lines", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("bw + lines", 512, 512)
     cv2.imshow("bw + lines", bw)
+
     # waitKey()
 
     # tri aleatoire du tableau des angles
@@ -107,8 +116,10 @@ if __name__ == '__main__':
     h = w
     img_angles = np.zeros((h + 1, w + 1, 1), np.uint8)
     for i, angle in enumerate(angles):
-        angle = (angle - m) / (M - m) * w
+        angle = int((angle - m) / (M - m) * w)
         img_angles[i, angle] = 255
+    cv2.namedWindow("img_angles", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("img_angles", 512, 512)
     cv2.imshow("img_angles", img_angles)
 
     img_hough = np.zeros((h + 1, w + 1, 3), np.uint8)
@@ -118,22 +129,25 @@ if __name__ == '__main__':
                             theta=math.pi / 180, threshold=70,
                             minLineLength=minLineLength, maxLineGap=maxLineGap
                             )
+    dst = src2
     if lines is not None:
         # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
-        print lines
+        print(lines)
         results_rotations = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            print "(x1, y1), (x2, y2): ", (x1, y1), (x2, y2)
+            print("(x1, y1), (x2, y2): ", (x1, y1), (x2, y2))
             angle = (x1 / (float)(w)) * (M - m) + m
             result = (angle, abs(y2 - y1))
-            print "=> angle & length_line: ", result
+            print("=> angle & length_line: ", result)
             cv2.line(img_hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
             results_rotations.append(result)
+        cv2.namedWindow("houghlines3", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("houghlines3", 512, 512)
         cv2.imshow("houghlines3", img_hough)
-        print "results_rotations: ", results_rotations
-        angle_rotation = max(lambda tup: tup[1], results_rotations)[0][0]
-        print "-> angle_rotation: ", angle_rotation
+        print("results_rotations: ", results_rotations)
+        angle_rotation = max(results_rotations, key=lambda tup: tup[1])[0]
+        print("-> angle_rotation: ", angle_rotation)
         dst = rotate_image_2(src2, (360 - angle_rotation))
         cv2.imshow("window", dst)
 
@@ -142,20 +156,39 @@ if __name__ == '__main__':
     gray = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
     ####
     edges = ~gray
-    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                               cv2.THRESH_BINARY, 15, -2)
     horizontals = extract_horizontal(bw, 40)
     contours, hier = findContours(horizontals.copy())
-    # ratio_approx = 0.005 * 0
-    # contours_approx = map(lambda cnt: cv2.approxPolyDP(cnt, ratio_approx * cv2.arcLength(cnt, True), True), contours)
     img_contours = dst.copy()
-    drawContours_filterByPerimeter(img_contours, contours, **{'minPerimeter': 500})
-    # drawContours_filterByPerimeter(img_contours, contours_approx, **{'minPerimeter': 500})
+    drawContours_filterByPerimeter(img_contours, contours,
+                                   **{'minPerimeter': 500})
+    # ratio_approx = 0.005 * 0
+    # contours_approx = map(
+    #     lambda cnt: cv2.approxPolyDP(cnt,
+    #                                  ratio_approx * cv2.arcLength(cnt, True),
+    #                                  True),
+    #     contours
+    # )
+    # drawContours_filterByPerimeter(img_contours,
+    #                                contours_approx, **{'minPerimeter': 500})
 
-    list_ch = [cv2.convexHull(contour, returnPoints=True) for contour in contours]
+    list_ch = [cv2.convexHull(contour, returnPoints=True) for contour in
+               contours]
     cv2.drawContours(img_contours, list_ch, -1, (255, 255, 0), 1)
 
+    cv2.namedWindow("horizontals", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("horizontals", 512, 512)
+    cv2.namedWindow("bw", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("bw", 512, 512)
+    cv2.namedWindow("img_contours", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("img_contours", 512, 512)
     cv2.imshow("horizontals", horizontals)
     cv2.imshow("bw", bw)
     cv2.imshow("img_contours", img_contours)
 
     waitKey()
+
+
+if __name__ == '__main__':
+    main()

@@ -139,6 +139,7 @@ def main():
     filename = str(get_image_path(filename))
 
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("window", 512, 512)
 
     src = cv2.imread(filename)
     src2 = src.copy()
@@ -184,7 +185,7 @@ def main():
     # cv2.imshow("bw", bw)
     # cv2.waitKey(0)
     # url: http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html
-    cv2.imwrite("bw.png", bw)
+    # cv2.imwrite("bw.png", bw)
     #############################
 
     minLineLength = 0
@@ -237,10 +238,11 @@ def main():
     print("bin_edges: ", bin_edges)
     print("angles:", angles)
 
-    hist = hist.tolist()
-    max_value = max(hist)
+    # hist = hist.tolist()
+    # max_value = max(hist)
+    max_value = hist.max()
     print('max value: ', max_value)
-    index_of_max = hist.index(max_value)
+    index_of_max = np.where(hist == max_value)[0]
     angle_for_max = bin_edges[index_of_max]
     print("(hist) angle for max: ", angle_for_max)
     print("index of max in hist: ", index_of_max)
@@ -254,7 +256,7 @@ def main():
         print("angle for max: ", angle_for_max)
 
     cv2.imshow("window", src)
-    cv2.imwrite("houghlines3.png", src)
+    # cv2.imwrite("houghlines3.png", src)
 
     # dst = rotate(omr_musicsheet, angle_for_max)
     # dst = rotate_image(src2, angle_for_max)
@@ -262,7 +264,7 @@ def main():
     # dst = rotate_image_2(src2, angle_for_max)
 
     cv2.imshow("window", dst)
-    cv2.imwrite("rotate_image.png", dst)
+    # cv2.imwrite("rotate_image.png", dst)
 
     # mu, sigma = 200, 25
     # x = angles
@@ -314,6 +316,8 @@ def main():
     for i, angle in enumerate(angles):
         angle = int((angle - m) / (M - m) * w)
         img_angles[i, angle] = 255
+    cv2.namedWindow("img_angles", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("img_angles", 512, 512)
     cv2.imshow("img_angles", img_angles)
 
     img_hough = np.zeros((h + 1, w + 1, 3), np.uint8)
@@ -336,12 +340,16 @@ def main():
             print("=> angle & length_line: ", result)
             cv2.line(img_hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
             results_rotations.append(result)
+        cv2.namedWindow("houghlines3", cv2.WINDOW_NORMAL)
         cv2.imshow("houghlines3", img_hough)
+        cv2.resizeWindow("houghlines3", 512, 512)
         print("results_rotations: ", results_rotations)
         angle_rotation = max(results_rotations, key=lambda tup: tup[1])[0]
         print("-> angle_rotation: ", angle_rotation)
         dst = rotate_image_2(src2, (360 - angle_rotation))
+        cv2.namedWindow("image rotated with Hough method", cv2.WINDOW_NORMAL)
         cv2.imshow("image rotated with Hough method", dst)
+        cv2.resizeWindow("image rotated with Hough method", 512, 512)
 
     while True:
         k = cv2.waitKey(1) & 0xFF

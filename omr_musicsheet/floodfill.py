@@ -54,7 +54,8 @@ def main():
     # - http://www.ipol.im/pub/art/2011/bcm_nlm/
     templateWindowSize = 7
     searchWindowSize = 21
-    gray = cv2.fastNlMeansDenoising(gray, None, 10, templateWindowSize, searchWindowSize)
+    gray = cv2.fastNlMeansDenoising(gray, None, 10, templateWindowSize,
+                                    searchWindowSize)
     cv2.imshow('Denoise', gray)
     ################
 
@@ -68,13 +69,15 @@ def main():
     cv2.imshow('bitwise_gray', bitwise_gray)
 
     # gray = cv2.adaptiveThreshold(bitwise_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, -2)
-    ret, gray = cv2.threshold(bitwise_gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    ret, gray = cv2.threshold(bitwise_gray, minThreshold, maxThreshold,
+                              cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     # gray = cv2.fastNlMeansDenoising(gray)
     cv2.imshow('gray', gray)
 
     h, w = img.shape[:2]
 
-    params_findContours = {"mode": cv2.RETR_TREE, "method": cv2.CHAIN_APPROX_SIMPLE}
+    params_findContours = {"mode": cv2.RETR_TREE,
+                           "method": cv2.CHAIN_APPROX_SIMPLE}
     tup_contours = findContours(gray, **params_findContours)
 
     img_symbols = np.zeros((h + 2, w + 2, 3), np.uint8)
@@ -83,7 +86,8 @@ def main():
     #
     idContourSheet = findContourSheet(img_result, tup_contours, -1)
     # print("idContourSheet: ", idContourSheet)
-    findContoursMusicSymbols(gray, img_result, tup_contours, -1, False, idContourSheet)
+    findContoursMusicSymbols(gray, img_result, tup_contours, -1, False,
+                             idContourSheet)
     ######
     # Reduce horizontals
     # findContoursMusicSymbols(gray, img_result, tup_contours, 3, False, idContourSheet)
@@ -103,12 +107,14 @@ def main():
         if min(height, width) < min_dimension:
             # color_contour = np.random.randint(255, size=3)
             color_contour = (0, 0, 0)
-            cv2.drawContours(img_result_contours, contours, i, color_contour, -1)
+            cv2.drawContours(img_result_contours, contours, i, color_contour,
+                             -1)
             cv2.drawContours(img_result, contours, i, color_contour, -1)
         else:
             color_contour = random_color()
             cv2.drawContours(img_result_contours, contours, i, color_contour, 1)
-            cv2.rectangle(img_result_contours, (x, y), (x + width, y + height), color_contour, 2)
+            cv2.rectangle(img_result_contours, (x, y), (x + width, y + height),
+                          color_contour, 2)
             # cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
     #
     cv2.imshow('horizontals', horizontals)
@@ -124,8 +130,10 @@ def main():
         x, y, width, height = cv2.boundingRect(contour)
         if min(height, width) >= min_dimension:
             color_contour = random_color()
-            cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
-            cv2.rectangle(img_result, (x, y), (x + width, y + height), color_contour, 2)
+            cv2.rectangle(img, (x, y), (x + width, y + height), color_contour,
+                          2)
+            cv2.rectangle(img_result, (x, y), (x + width, y + height),
+                          color_contour, 2)
             #
             # cv2.rectangle(img_symbols, (x, y), (x + width, y + height), color_contour, 4)
 
@@ -157,6 +165,7 @@ def main():
 
     mask = np.zeros((h + 2, w + 2), np.uint8)
     seed_pt = None
+
     # fixed_range = True
     # connectivity = 4
 
@@ -181,7 +190,8 @@ def main():
         flags = connectivity
         if fixed_range:
             flags |= cv2.FLOODFILL_FIXED_RANGE
-        cv2.floodFill(flooded, mask, seed_pt, (0, 255, 0), (lo,) * 3, (hi,) * 3, flags)
+        cv2.floodFill(flooded, mask, seed_pt, (0, 255, 0), (lo,) * 3, (hi,) * 3,
+                      flags)
         cv2.circle(flooded, seed_pt, 2, (0, 0, 255), -1)
         # flooded[flooded != (0, 255, 0)] = 0
         cv2.imshow('floodfill', flooded)

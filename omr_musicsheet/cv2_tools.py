@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
+from random import randint
+from typing import List
 
 import cv2
 import numpy as np
@@ -63,13 +65,14 @@ def extract_horizontal(src, scale=30):
 
     # Specify size on horizontal axis
     height, width = horizontal.shape[:2]
-    horizontalsize = width / scale
+    horizontalsize = width // scale
 
     # Create structure element for extracting horizontal lines through morphology operations
     # Mat horizontalStructure = getStructuringElement(MORPH_RECT, Size(horizontalsize,1));
     # url:
     # http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
-    horizontalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontalsize, 1))
+    horizontalStructure = cv2.getStructuringElement(cv2.MORPH_RECT,
+                                                    (horizontalsize, 1))
     # print horizontalStructure
 
     # Apply morphology operations
@@ -94,7 +97,7 @@ def extract_vertical(src, scale=30):
 
     # Specify size on horizontal axis
     height, width = vertical.shape[:2]
-    verticalsize = height / scale
+    verticalsize = height // scale
 
     verticalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (1, verticalsize))
     # print verticalStructure
@@ -179,6 +182,10 @@ def fore_back_ground(img1, img2):
 #     **params)
 
 
+def random_color() -> [int, int, int]:
+    return [randint(0, 255), randint(0, 255), randint(0, 255)]
+
+
 def drawContours_filterByPerimeter(img, contours, **params):
     """Summary
 
@@ -200,8 +207,7 @@ def drawContours_filterByPerimeter(img, contours, **params):
         for i, contour in enumerate(contours):
             perimeter = cv2.arcLength(contour, True)
             if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
-                color_rand = np.random.randint(255, size=3)
-                cv2.drawContours(img, contours, i, color_rand, thickness)
+                cv2.drawContours(img, contours, i, random_color(), thickness)
     else:
         color = params.get("color", (255, 255, 255))
         for i, contour in enumerate(contours):
@@ -231,8 +237,8 @@ def fillContours_filterByPerimeter(img, contours, **params):
         perimeter = cv2.arcLength(contour, True)
         if (perimeter >= minPerimeter) and (perimeter <= maxPerimeter):
             if use_color_rand:
-                color = np.random.randint(255, size=3)
-                print "color_rand: ", color
+                color = random_color()
+                print("color_rand: ", color)
             cv2.fillPoly(img, pts=contour, color=color)
 
 
@@ -285,7 +291,7 @@ def detectLine_LSD(src, minLength2=-1):
     ls = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD)
     tup_results = ls.detect(cv2.medianBlur(src, 5))
     lines, widths, _, _ = tup_results
-    print widths
+    print(widths)
     if lines is not None:
         if minLength2 != -1:
             def length2(line):
@@ -296,8 +302,8 @@ def detectLine_LSD(src, minLength2=-1):
                     lines
                 )
             )
-        print "# Lines: ", len(lines)
-        ls.drawSegments(dst, lines)
+        print("# Lines: ", lines.shape)
+        # ls.drawSegments(dst, lines)
     return dst
 
 
@@ -441,7 +447,7 @@ def findContoursSymbols(
     for i, contour in enumerate(contours):
         if i is not exceptId:
             if not(checkConvexivity) or cv2.isContourConvex(contour):
-                color_rand = np.random.randint(255, size=3)
+                color_rand = random_color()
                 if draw_contours:
                     color_contours = color_rand if use_rand_color else (0, 0, 0)
                     cv2.drawContours(dst, contours, i, color_contours, thickness)

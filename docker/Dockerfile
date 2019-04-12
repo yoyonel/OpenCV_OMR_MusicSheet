@@ -1,5 +1,5 @@
 # https://hub.docker.com/r/chipgarner/opencv3-webcam/
-FROM chipgarner/opencv3-webcam:python2
+FROM chipgarner/opencv3-webcam:python3
 
 # ADD requirements.txt /requirements.txt
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
-
-'''
+"""
 Floodfill sample.
 
 Usage:
@@ -13,22 +12,19 @@ Keys:
   f     - toggle floating range
   c     - toggle 4/8 connectivity
   ESC   - exit
-'''
-
-# Python 2/3 compatibility
-from __future__ import print_function
-
+"""
 import ast
+import sys
+
 from omr_musicsheet.cv2_tools import *
+from omr_musicsheet.datasets import get_image_path
 
 
-########################################################
-if __name__ == '__main__':
-    import sys
+def main():
     try:
         fn = sys.argv[1]
     except:
-        fn = '../datasets/fruits.jpg'
+        fn = str(get_image_path('volt_sprite_sheet_by_kwelfury-d5hx008.png'))
     try:
         # url: http://stackoverflow.com/questions/715417/converting-from-a-string-to-boolean-in-python
         fixed_range = ast.literal_eval(sys.argv[2])
@@ -97,7 +93,7 @@ if __name__ == '__main__':
     #
     horizontals = extract_horizontal(img_result, 70)
     #
-    img_result_contours = np.zeros((h, w, 3), np.uint8)
+    img_result_contours = np.zeros(img_result.shape, np.uint8)
     img_result_contours[img_result == 255] = 255
     contours, hierarchy = findContours(img_result.copy(), **params_findContours)
     min_dimension = 5
@@ -110,7 +106,7 @@ if __name__ == '__main__':
             cv2.drawContours(img_result_contours, contours, i, color_contour, -1)
             cv2.drawContours(img_result, contours, i, color_contour, -1)
         else:
-            color_contour = np.random.randint(255, size=3)
+            color_contour = random_color()
             cv2.drawContours(img_result_contours, contours, i, color_contour, 1)
             cv2.rectangle(img_result_contours, (x, y), (x + width, y + height), color_contour, 2)
             # cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
@@ -127,7 +123,7 @@ if __name__ == '__main__':
     for i, contour in enumerate(contours):
         x, y, width, height = cv2.boundingRect(contour)
         if min(height, width) >= min_dimension:
-            color_contour = np.random.randint(255, size=3)
+            color_contour = random_color()
             cv2.rectangle(img, (x, y), (x + width, y + height), color_contour, 2)
             cv2.rectangle(img_result, (x, y), (x + width, y + height), color_contour, 2)
             #
@@ -215,3 +211,7 @@ if __name__ == '__main__':
             print('connectivity =', connectivity)
             update()
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()

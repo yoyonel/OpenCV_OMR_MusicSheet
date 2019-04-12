@@ -1,11 +1,20 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 
-from omr_musicsheet.cv2_tools import *
+# from omr_musicsheet.cv2_tools import *
+import cv2
+import numpy as np
 
-if __name__ == "__main__":
-    filename = "Page_09_Pattern_24.png"
-    src = cv2.imread(filename)
+from omr_musicsheet.extract_object import showImage
+from omr_musicsheet.cv2_tools import detectLine_LSD, binarize_img, \
+    morpho_dilate, extract_horizontal, extract_vertical, morphological_skeleton, \
+    drawContours_filterByPerimeter, fillContours_filterByPerimeter, \
+    fore_back_ground
+from omr_musicsheet.datasets import get_image_path
+
+
+def main():
+    src = cv2.imread(str(get_image_path('Page_09_Pattern_24.png')))
 
     src = cv2.fastNlMeansDenoising(src, None, 10, 7, 21)
     # omr_musicsheet = cv2.medianBlur(omr_musicsheet, 5)
@@ -61,10 +70,12 @@ if __name__ == "__main__":
     showImage(add_vertical, "add_vertical")
 
     add_vertical_mskel, nbIter = morphological_skeleton(add_vertical.copy())
-    showImage(add_vertical_mskel, "add_vertical + MorphoSkel - nbIter={0}".format(nbIter))
+    showImage(add_vertical_mskel,
+              "add_vertical + MorphoSkel - nbIter={0}".format(nbIter))
 
-    params_findContours = {"mode": cv2.RETR_CCOMP, "method": cv2.CHAIN_APPROX_SIMPLE}
-    contours, hierarchy = findContours(horizontal, **params_findContours)
+    params_findContours = {"mode": cv2.RETR_CCOMP,
+                           "method": cv2.CHAIN_APPROX_SIMPLE}
+    contours, hierarchy = cv2.findContours(horizontal, **params_findContours)
 
     height, width = src.shape[:2]
     img_contours = src.copy()
@@ -80,16 +91,20 @@ if __name__ == "__main__":
     #
     drawContours_filterByPerimeter(img_contours, contours, **params_Contours)
     # merge de dict python -> url: http://stackoverflow.com/a/39858
-    fillContours_filterByPerimeter(img_contours, contours, **params_fillContours)
+    fillContours_filterByPerimeter(img_contours, contours,
+                                   **params_fillContours)
     #
-    drawContours_filterByPerimeter(img_contours_2, contours, **params_drawContours)
-    fillContours_filterByPerimeter(img_contours_2, contours, **params_fillContours)
+    drawContours_filterByPerimeter(img_contours_2, contours,
+                                   **params_drawContours)
+    fillContours_filterByPerimeter(img_contours_2, contours,
+                                   **params_fillContours)
 
     params_detectLines = dict(params_fillContours, **{'color': (255, 0, 0)})
     # detectLine_fromContours_filterByPerimeter(img_contours, contours, **params_detectLines)
 
     img_contours_mskel, nbIter = morphological_skeleton(img_contours_2.copy())
-    showImage(img_contours_mskel, "img_contours_2 + MorphoSkel - nbIter={0}".format(nbIter))
+    showImage(img_contours_mskel,
+              "img_contours_2 + MorphoSkel - nbIter={0}".format(nbIter))
 
     img_contours_2 = cv2.Canny(img_contours_2, 150, 700, apertureSize=5)
     showImage(img_contours_2, "Contours - Canny")
@@ -98,15 +113,18 @@ if __name__ == "__main__":
 
     img_contours_mskel = cv2.cvtColor(img_contours_mskel, cv2.COLOR_GRAY2BGR)
     # url: stackoverflow.com/questions/11433604/opencv-setting-all-pixels-of-specific-bgr-value-to-another-bgr-value
-    img_contours_mskel[np.where((img_contours_mskel == [255, 255, 255]).all(axis=2))] = [0, 0, 255]
+    img_contours_mskel[
+        np.where((img_contours_mskel == [255, 255, 255]).all(axis=2))] = [0, 0,
+                                                                          255]
 
     # img_contours_mskel = cv2.addWeighted(img_contours, 0.5, img_contours_mskel, 0.5, 0)
     img_contours_mskel = fore_back_ground(img_contours, img_contours_mskel)
 
     showImage(img_contours_mskel, "Contours + MSkel - Couleurs")
 
-    _, contours, hierarchy = cv2.findContours(
-        add_vertical.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  # get contours
+    contours, hierarchy = cv2.findContours(
+        add_vertical.copy(), cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_NONE)  # get contours
     # for each contour found, draw a rectangle around it on original image
     for contour in contours:
         # get rectangle bounding contour
@@ -124,7 +142,11 @@ if __name__ == "__main__":
 
     showImage(src, "Source")
 
-    while (1):
+    while True:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
             break
+
+
+if __name__ == "__main__":
+    main()

@@ -7,6 +7,8 @@ from typing import Dict, List
 from setuptools import setup, find_packages
 
 descr = """\
+Dépôt pour le projet de scan et reconnaissance 
+semi auto de partitions/tablatures issues des méthodes de basse.
 """
 
 DISTNAME = 'omr_musicsheet'
@@ -14,7 +16,7 @@ DESCRIPTION = 'OMR MusicSheet with OpenCV'
 LONG_DESCRIPTION = descr
 MAINTAINER = 'Lionel ATTY',
 MAINTAINER_EMAIL = 'yoyonel@hotmail.com',
-URL = ''
+URL = 'https://github.com/yoyonel/OpenCV_OMR_MusicSheet'
 LICENSE = 'BSD'
 DOWNLOAD_URL = ''
 PACKAGE_NAME = 'omr_musicsheet'

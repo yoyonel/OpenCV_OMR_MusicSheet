@@ -4,22 +4,9 @@ import math
 import sys
 # import pylab as P
 import matplotlib.pyplot as plt
-# import matplotlib.mlab as mlab
 
-#
-# filename = "Page_09_HD.jpg"
-# filename = "Page_09.jpg"
-#
-# filename = "Page_09_Pattern_23.png"
-# filename = "Page_09_Pattern_24.png"
-# filename = "Page_09_Pattern_25.png"
-# filename = "Page_09_Pattern_26.png"
-#
-# filename = "Page_09_Pattern_23_rot90.png"
-filename = "Page_09_Pattern_24_rot.png"
-# filename = "Page_09_Pattern_26_rot_crop.png"
-#
-# filename = "rotate_image.png"
+# import matplotlib.mlab as mlab
+from omr_musicsheet.datasets import get_image_path
 
 
 def rotate(image, angle, center=None, scale=1.0):
@@ -58,9 +45,10 @@ def rotate_image(image, angle):
 
     R = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     dst_image[offset_x:(offset_x + image.shape[0]),
-              offset_y:(offset_y + image.shape[1]),
-              :] = image
-    dst_image = cv2.warpAffine(dst_image, R, (diagonal, diagonal), flags=cv2.INTER_LINEAR)
+    offset_y:(offset_y + image.shape[1]),
+    :] = image
+    dst_image = cv2.warpAffine(dst_image, R, (diagonal, diagonal),
+                               flags=cv2.INTER_LINEAR)
 
     # Calculate the rotated bounding rect
     x0 = offset_x
@@ -127,11 +115,29 @@ def rotate_image_2(mat, angle):
     rotation_mat[0, 2] += ((bound_w / 2) - image_center[0])
     rotation_mat[1, 2] += ((bound_h / 2) - image_center[1])
 
-    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h), borderValue=(255, 255, 255))
+    rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h),
+                                 borderValue=(255, 255, 255))
     return rotated_mat
 
 
-if __name__ == '__main__':
+def main():
+    #
+    # filename = "Page_09_HD.jpg"
+    # filename = "Page_09.jpg"
+    #
+    # filename = "Page_09_Pattern_23.png"
+    # filename = "Page_09_Pattern_24.png"
+    # filename = "Page_09_Pattern_25.png"
+    # filename = "Page_09_Pattern_26.png"
+    #
+    # filename = "Page_09_Pattern_23_rot90.png"
+    # filename = "Page_09_Pattern_24_rot.png"
+
+    filename = "Page_09_Pattern_26_rot_crop.png"
+    #
+
+    filename = str(get_image_path(filename))
+
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
 
     src = cv2.imread(filename)
@@ -163,15 +169,16 @@ if __name__ == '__main__':
     #
     minThreshold = 0  #
     maxThreshold = 255
-    ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    ret, bw = cv2.threshold(~gray, minThreshold, maxThreshold,
+                            cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
     edges = cv2.Canny(gray, 150, 700, apertureSize=5)
     edges = ~edges
     cv2.imshow("window", edges)
-    cv2.waitKey(0)
 
     # bw = edges
-    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    bw = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                               cv2.THRESH_BINARY, 15, -2)
     # bw = cv2.adaptiveThreshold(~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
 
     # cv2.imshow("bw", bw)
@@ -207,7 +214,8 @@ if __name__ == '__main__':
 
             angles.append(angle)
             # print "angle: ", angle
-            cv2.line(src, (x1, y1), (x2, y2), (0, 255, 0) if angle > 0 else (255, 0, 0), 2)
+            cv2.line(src, (x1, y1), (x2, y2),
+                     (0, 255, 0) if angle > 0 else (255, 0, 0), 2)
 
             # weight = math.sqrt(dy**2 + dx**2)
             # weights.append(weight)
@@ -225,28 +233,28 @@ if __name__ == '__main__':
     hist, bin_edges = np.histogram(angles, nb_bins, density=True)
     hist *= np.diff(bin_edges)
     #
-    print "hist: ", hist
-    print "bin_edges: ", bin_edges
-    print "angles:", angles
+    print("hist: ", hist)
+    print("bin_edges: ", bin_edges)
+    print("angles:", angles)
 
     hist = hist.tolist()
     max_value = max(hist)
-    print 'max value: ', max_value
+    print('max value: ', max_value)
     index_of_max = hist.index(max_value)
     angle_for_max = bin_edges[index_of_max]
-    print "(hist) angle for max: ", angle_for_max
-    print "index of max in hist: ", index_of_max
+    print("(hist) angle for max: ", angle_for_max)
+    print("index of max in hist: ", index_of_max)
 
-    angles_around_angle_max = filter(lambda angle: abs(angle - angle_for_max) < 0.1, angles)
+    angles_around_angle_max = filter(
+        lambda angle: abs(angle - angle_for_max) < 0.1, angles)
     if angles_around_angle_max:
         angle_for_max = max(angles_around_angle_max)
         print("angles_around_angle_max: ", angles_around_angle_max)
         #
-        print "angle for max: ", angle_for_max
+        print("angle for max: ", angle_for_max)
 
     cv2.imshow("window", src)
     cv2.imwrite("houghlines3.png", src)
-    cv2.waitKey(0)
 
     # dst = rotate(omr_musicsheet, angle_for_max)
     # dst = rotate_image(src2, angle_for_max)
@@ -255,7 +263,6 @@ if __name__ == '__main__':
 
     cv2.imshow("window", dst)
     cv2.imwrite("rotate_image.png", dst)
-    cv2.waitKey(0)
 
     # mu, sigma = 200, 25
     # x = angles
@@ -305,7 +312,7 @@ if __name__ == '__main__':
     h = w
     img_angles = np.zeros((h + 1, w + 1, 1), np.uint8)
     for i, angle in enumerate(angles):
-        angle = (angle - m) / (M - m) * w
+        angle = int((angle - m) / (M - m) * w)
         img_angles[i, angle] = 255
     cv2.imshow("img_angles", img_angles)
 
@@ -319,24 +326,28 @@ if __name__ == '__main__':
                             )
     if lines is not None:
         # url: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
-        print lines
+        print(lines)
         results_rotations = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            print "(x1, y1), (x2, y2): ", (x1, y1), (x2, y2)
+            print("(x1, y1), (x2, y2): ", (x1, y1), (x2, y2))
             angle = (x1 / (float)(w)) * (M - m) + m
             result = (angle, abs(y2 - y1))
-            print "=> angle & length_line: ", result
+            print("=> angle & length_line: ", result)
             cv2.line(img_hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
             results_rotations.append(result)
         cv2.imshow("houghlines3", img_hough)
-        print "results_rotations: ", results_rotations
-        angle_rotation = max(lambda tup: tup[1], results_rotations)[0][0]
-        print "-> angle_rotation: ", angle_rotation
+        print("results_rotations: ", results_rotations)
+        angle_rotation = max(results_rotations, key=lambda tup: tup[1])[0]
+        print("-> angle_rotation: ", angle_rotation)
         dst = rotate_image_2(src2, (360 - angle_rotation))
         cv2.imshow("image rotated with Hough method", dst)
 
-    while(1):
+    while True:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:
             break
+
+
+if __name__ == '__main__':
+    main()

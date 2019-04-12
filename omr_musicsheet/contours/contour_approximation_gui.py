@@ -3,18 +3,15 @@ http://opencvpython.blogspot.fr/2012/06/hi-this-article-is-tutorial-which-try.ht
 """
 import cv2
 import logging
-from pathlib import Path
 #
-from omr_musicsheet.datasets import get_module_path_datasets
+from omr_musicsheet.datasets import get_image_path
 from omr_musicsheet.tools.logger import init_logger
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    fn = Path(get_module_path_datasets()) / 'balls.png'
-
-    im = cv2.imread(str(fn))
+    im = cv2.imread(str(get_image_path('balls.png')))
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     cv2.imshow("imgray", imgray)
 

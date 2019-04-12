@@ -2,20 +2,17 @@
 """
 http://opencvpython.blogspot.fr/2012/06/hi-this-article-is-tutorial-which-try.html
 """
-from pathlib import Path
-
 import cv2
 import logging
 
 from omr_musicsheet.tools.logger import init_logger
-from omr_musicsheet.datasets import get_module_path_datasets
+from omr_musicsheet.datasets import get_image_path
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    fn = Path(get_module_path_datasets()) / 'test.jpg'
-    im = cv2.imread(str(fn))
+    im = cv2.imread(str(get_image_path('test.jpg')))
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(imgray, 127, 255, 0)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,

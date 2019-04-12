@@ -1,9 +1,7 @@
 """
 """
-# from collections import defaultdict
-from dataclasses import dataclass, field
-
 import cv2
+from dataclasses import dataclass, field
 import logging
 import numpy as np
 from pathlib import Path
@@ -15,8 +13,8 @@ from sklearn.cluster import (
     # KMeans
 )
 
+from omr_musicsheet.datasets import get_image_path
 from omr_musicsheet.tools.logger import init_logger
-from omr_musicsheet.datasets import get_module_path_datasets
 
 logger = logging.getLogger(__name__)
 
@@ -191,20 +189,13 @@ def cluster_bbox_with_rectilines(bbox):
 
 @dataclass
 class AABBoxParams:
-    img_fn: str
+    path_img: Path
     filter_min_perimeter: int
     filter_max_perimeter: int
 
-    path_img: Path = field(init=False)
-
-    def __post_init__(self):
-        self.path_img = Path(get_module_path_datasets()) / self.img_fn
-
 
 def compute_aabbox_from_img_and_mask(params: AABBoxParams):
-    img_path = Path(params.path_img)
-    if not img_path.exists():
-        raise IOError(f"{img_path} does'nt exist !")
+    img_path = params.path_img
 
     # Mask created with GIMP: image>mode>rgb tools>color_tools>colorize
     # https://docs.gimp.org/2.10/fr/gimp-tool-threshold.html
@@ -277,7 +268,7 @@ def compute_aabbox_from_img_and_mask(params: AABBoxParams):
     cv2.imshow("img_for_contours", img_for_contours)
     cv2.imshow('Sprite Sheets - Mask', im)
     cv2.imshow('Sprite Sheets - Results', im_result)
-    cv2.imshow(f'Sprite Sheets on {params.img_fn}', im_mss)
+    cv2.imshow(f'Sprite Sheets on {params.path_img.stem}', im_mss)
 
     # cluster_bbox(bbox)
     logger.info(cluster_bbox_with_rectilines(bbox))
@@ -298,9 +289,11 @@ def compute_and_render(
 
 def main():
     compute_and_render([
-        AABBoxParams('mercedesspritesheets.png', 132, 236),
-        AABBoxParams('trump_run.png', 230, 290),
-        AABBoxParams('volt_sprite_sheet_by_kwelfury-d5hx008.png', 632, 676)
+        AABBoxParams(get_image_path('mercedesspritesheets.png'), 132, 236),
+        AABBoxParams(get_image_path('trump_run.png'), 230, 290),
+        AABBoxParams(
+            get_image_path('volt_sprite_sheet_by_kwelfury-d5hx008.png'),
+            632, 676)
     ])
 
 
